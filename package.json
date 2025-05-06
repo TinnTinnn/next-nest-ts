@@ -1,0 +1,16 @@
+{
+  "name": "next-nest-ts",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently -n FRONT,BACK -c green,blue \"npm run dev --prefix front-next\" \"npm run start:dev --prefix back-nest\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
