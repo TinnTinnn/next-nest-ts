@@ -1,6 +1,6 @@
 "use client"
 
-import type React from "react"
+import React, { useState } from 'react';
 
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -8,13 +8,40 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Box, KeyRound } from "lucide-react"
+import { error } from 'next/dist/build/output/log';
 
 export default function LoginPage() {
   const router = useRouter()
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    router.push("/dashboard")
+
+    try {
+      const response = await fetch("http://localhost:3001/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ email, password }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Login failed.")
+      }
+
+      const data = await response.json()
+      console.log("Login success:", data);
+
+    //   save access_token (optional: localStorage)
+      localStorage.setItem("access_token", data.accesss_token)
+      router.push("/dashboard")
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("Login failed. Please check your email and password")
+    }
   }
 
   return (
@@ -31,7 +58,14 @@ export default function LoginPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <Input id="email" placeholder="your@email.com" type="email" required className="border-primary/20" />
+              <Input
+                id="email"
+                placeholder="your@email.com"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="border-primary/20" />
             </div>
             <div className="space-y-2">
               <div className="flex items-center justify-between">
@@ -40,7 +74,13 @@ export default function LoginPage() {
                   Forgot password?
                 </Button>
               </div>
-              <Input id="password" type="password" required className="border-primary/20" />
+              <Input
+                id="password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="border-primary/20" />
             </div>
             <Button type="submit" className="w-full">
               <KeyRound className="mr-2 h-4 w-4" />
