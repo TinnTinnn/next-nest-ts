@@ -25,7 +25,7 @@ export class AuthService {
                     name: dto.name,
                 },
             });
-            const tokens = await this.getTokens(user.id, user.email);
+            const tokens = await this.getTokens(user.id, user.email, user.name, user.role);
             await this.updateRefreshToken(user.id, tokens.refresh_token);
             return tokens;
         } catch (error) {
@@ -41,7 +41,7 @@ export class AuthService {
         const pwMatches = await bcrypt.compare(dto.password, user.password);
         if (!pwMatches) throw new ForbiddenException('Invalid credentials');
 
-        const tokens = await this.getTokens(user.id, user.email);
+        const tokens = await this.getTokens(user.id, user.email, user.name, user.role);
         await this.updateRefreshToken(user.id, tokens.refresh_token);
         return tokens;
     }
@@ -77,18 +77,19 @@ export class AuthService {
         const rtMatches = await bcrypt.compare(rt, user.refreshToken);
         if (!rtMatches) throw new ForbiddenException('Access Denied');
 
-        const tokens = await this.getTokens(user.id, user.email);
+        const tokens = await this.getTokens(user.id, user.email,user.name, user.role);
         await this.updateRefreshToken(user.id, tokens.refresh_token);
         return tokens;
     }
 
-    async getTokens(userId: number, email: string) {
+    async getTokens(userId: number, email: string, name: string, role: string) {
+        const payload = { sub: userId, email, name, role };
         const [at, rt] = await Promise.all([
-            this.jwt.signAsync({ sub: userId, email }, {
+            this.jwt.signAsync(payload, {
                 secret: this.config.get('JWT_ACCESS_SECRET'),
                 expiresIn: '15m',
             }),
-            this.jwt.signAsync({ sub: userId, email }, {
+            this.jwt.signAsync(payload, {
                 secret: this.config.get('JWT_REFRESH_SECRET'),
                 expiresIn: '7d',
             }),

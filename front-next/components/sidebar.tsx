@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
   Box,
@@ -32,11 +32,54 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useTheme } from "next-themes"
+import { useEffect, useState } from 'react';
 
 export function Sidebar() {
+  const [user, setUser] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
   const pathname = usePathname()
   const { isOpen, toggle } = useSidebar()
   const { theme, setTheme } = useTheme()
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const token = localStorage.getItem("access_token")
+      if (!token) {
+        router.push("/")
+        return
+      }
+
+      try {
+        const res = await fetch("http://localhost:3001/auth/me", {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include", // back-end ต้องการ cookie สำหรับ auth
+        })
+
+        if (!res.ok) throw new Error("Unauthorized")
+
+        const data = await res.json()
+        setUser(data)
+      } catch (err){
+        console.error("Failed to fetch user:", err);
+        router.push("/")
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchUser()
+  },[router])
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token")
+    router.push("/")
+  }
+
+  // if (isLoading) return <div>Loading...</div>
 
   return (
     <>
@@ -231,15 +274,15 @@ export function Sidebar() {
                   <DropdownMenuItem>Profile</DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <div className="flex flex-col">
-                <span className="text-sm font-medium">Admin User</span>
-                <span className="text-xs text-muted-foreground">admin@example.com</span>
+                <span className="text-sm font-medium">{user?.name}</span>
+                <span className="text-xs text-muted-foreground">{user?.email}</span>
               </div>
             </div>
           ) : (
