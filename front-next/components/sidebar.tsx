@@ -48,6 +48,7 @@ export function Sidebar() {
     setMounted(true);
   }, []);
 
+
   useEffect(() => {
     const fetchUser = async () => {
       const token = localStorage.getItem('access_token');
@@ -280,6 +281,7 @@ export function Sidebar() {
                     size="sm"
                     onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
                     className="mt-2 justify-start px-3"
+                    suppressHydrationWarning
                   >
                     {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
                     {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
