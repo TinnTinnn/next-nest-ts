@@ -1,6 +1,6 @@
-"use client"
+'use client';
 
-import Link from "next/link"
+import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   BarChart3,
@@ -17,12 +17,12 @@ import {
   ShoppingCart,
   Sun,
   Users,
-} from "lucide-react"
+} from 'lucide-react';
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { useSidebar } from "./sidebar-provider"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { useSidebar } from './sidebar-provider';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,54 +30,93 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useTheme } from "next-themes"
+} from '@/components/ui/dropdown-menu';
+import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export function Sidebar() {
-  const [user, setUser] = useState<any>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const router = useRouter()
-  const pathname = usePathname()
-  const { isOpen, toggle } = useSidebar()
-  const { theme, setTheme } = useTheme()
+  const [user, setUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { isOpen, toggle } = useSidebar();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // เพิ่ม effect นี้เพื่อให้แน่ใจว่า component จะแสดงเฉพาะฝั่ง client เท่านั้น
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     const fetchUser = async () => {
-      const token = localStorage.getItem("access_token")
+      const token = localStorage.getItem('access_token');
       if (!token) {
-        router.push("/")
-        return
+        router.push('/');
+        return;
       }
 
       try {
-        const res = await fetch("http://localhost:3001/auth/me", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          credentials: "include", // back-end ต้องการ cookie สำหรับ auth
-        })
+        const res = await fetchWithAutoRefresh('http://localhost:3001/auth/me', token);
+        if (!res.ok) throw new Error('Unauthorized');
 
-        if (!res.ok) throw new Error("Unauthorized")
-
-        const data = await res.json()
-        setUser(data)
-      } catch (err){
-        console.error("Failed to fetch user:", err);
-        router.push("/")
+        const data = await res.json();
+        setUser(data);
+      } catch (err) {
+        console.error('Failed to fetch user:', err);
+        router.push('/');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
+    };
+
+    fetchUser();
+  }, [router]);
+
+
+  const fetchWithAutoRefresh = async (url: string, token: string) => {
+    let res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      credentials: 'include',
+    });
+
+    if (res.status === 401) {
+      // ลอง refresh token
+      const refreshRes = await fetch('http://localhost:3001/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      });
+
+      if (!refreshRes.ok) {
+        throw new Error('Unable to refresh token');
+      }
+
+      const refreshData = await refreshRes.json();
+      localStorage.setItem('access_token', refreshData.access_token);
+
+      // ลองเรียกอีกครั้งด้วย access token ใหม่
+      res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${refreshData.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+      });
     }
 
-    fetchUser()
-  },[router])
+    return res;
+  };
+
 
   const handleLogout = () => {
-    localStorage.removeItem("access_token")
-    router.push("/")
-  }
+    localStorage.removeItem('access_token');
+    router.push('/');
+  };
 
   // if (isLoading) return <div>Loading...</div>
 
@@ -85,8 +124,8 @@ export function Sidebar() {
     <>
       <div
         className={cn(
-          "fixed inset-y-0 z-50 flex flex-col bg-background border-r transition-all duration-300",
-          isOpen ? "w-64" : "w-[70px]",
+          'fixed inset-y-0 z-50 flex flex-col bg-background border-r transition-all duration-300',
+          isOpen ? 'w-64' : 'w-[70px]',
         )}
       >
         <div className="flex h-14 items-center px-4 border-b bg-gradient-to-r from-background to-muted">
@@ -108,8 +147,8 @@ export function Sidebar() {
             <Link
               href="/"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/" ? "bg-accent text-accent-foreground font-medium shadow-sm" : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/' ? 'bg-accent text-accent-foreground font-medium shadow-sm' : 'text-muted-foreground',
               )}
             >
               <Home className="h-4 w-4" />
@@ -118,16 +157,16 @@ export function Sidebar() {
             <Link
               href="/dashboard"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/dashboard"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/dashboard'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <BarChart3 className="h-4 w-4" />
               {isOpen && <span>Dashboard</span>}
             </Link>
-            <div className={cn("my-2 px-3", !isOpen && "px-2")}>
+            <div className={cn('my-2 px-3', !isOpen && 'px-2')}>
               {isOpen ? (
                 <div className="text-xs font-medium text-muted-foreground">INVENTORY MANAGEMENT</div>
               ) : (
@@ -137,10 +176,10 @@ export function Sidebar() {
             <Link
               href="/products"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/products"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/products'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <Package className="h-4 w-4" />
@@ -149,10 +188,10 @@ export function Sidebar() {
             <Link
               href="/stock-in"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/stock-in"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/stock-in'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <PackagePlus className="h-4 w-4" />
@@ -161,10 +200,10 @@ export function Sidebar() {
             <Link
               href="/stock-out"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/stock-out"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/stock-out'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <ShoppingCart className="h-4 w-4" />
@@ -173,16 +212,16 @@ export function Sidebar() {
             <Link
               href="/inventory"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/inventory"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/inventory'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <ClipboardList className="h-4 w-4" />
               {isOpen && <span>Inventory Check</span>}
             </Link>
-            <div className={cn("my-2 px-3", !isOpen && "px-2")}>
+            <div className={cn('my-2 px-3', !isOpen && 'px-2')}>
               {isOpen ? (
                 <div className="text-xs font-medium text-muted-foreground">REPORTS</div>
               ) : (
@@ -192,16 +231,16 @@ export function Sidebar() {
             <Link
               href="/reports"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/reports"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/reports'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <FileSpreadsheet className="h-4 w-4" />
               {isOpen && <span>Reports</span>}
             </Link>
-            <div className={cn("my-2 px-3", !isOpen && "px-2")}>
+            <div className={cn('my-2 px-3', !isOpen && 'px-2')}>
               {isOpen ? (
                 <div className="text-xs font-medium text-muted-foreground">SYSTEM</div>
               ) : (
@@ -211,10 +250,10 @@ export function Sidebar() {
             <Link
               href="/users"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/users"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/users'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <Users className="h-4 w-4" />
@@ -223,36 +262,40 @@ export function Sidebar() {
             <Link
               href="/settings"
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground",
-                pathname === "/settings"
-                  ? "bg-accent text-accent-foreground font-medium shadow-sm"
-                  : "text-muted-foreground",
+                'flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-all hover:bg-accent hover:text-accent-foreground',
+                pathname === '/settings'
+                  ? 'bg-accent text-accent-foreground font-medium shadow-sm'
+                  : 'text-muted-foreground',
               )}
             >
               <Settings className="h-4 w-4" />
               {isOpen && <span>Settings</span>}
             </Link>
 
-            {isOpen ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="mt-2 justify-start px-3"
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
-                {theme === "dark" ? "Light Mode" : "Dark Mode"}
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className="mt-2 mx-auto"
-              >
-                {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                <span className="sr-only">Toggle Theme</span>
-              </Button>
+            { mounted && (
+              <>
+                {isOpen ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="mt-2 justify-start px-3"
+                  >
+                    {theme === 'dark' ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                    {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                    className="mt-2 mx-auto"
+                  >
+                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                    <span className="sr-only">Toggle Theme</span>
+                  </Button>
+                )}
+              </>
             )}
           </nav>
         </div>
@@ -313,13 +356,13 @@ export function Sidebar() {
       {/* Overlay for mobile */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-all duration-300 lg:hidden",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+          'fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-all duration-300 lg:hidden',
+          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none',
         )}
         onClick={toggle}
       />
       {/* Main content padding */}
-      <div className={cn("transition-all duration-300", isOpen ? "pl-64" : "pl-[70px]")}></div>
+      <div className={cn('transition-all duration-300', isOpen ? 'pl-64' : 'pl-[70px]')}></div>
     </>
-  )
+  );
 }
