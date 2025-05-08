@@ -11,6 +11,7 @@ import {
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
 import {JwtAuthGuard} from "./guards/jwt-auth.guard";
+import { RtGuard } from './guards/rt.guard';
 
 interface JwtPayload {
     sub: number;
@@ -81,6 +82,7 @@ export class AuthController {
         }
     }
 
+    @UseGuards(RtGuard)
     @Post('refresh')
     async refresh(@Req() req: RequestWithUser, @Res({ passthrough: true }) res: Response) {
         const refreshToken = req.cookies['refresh_token'];

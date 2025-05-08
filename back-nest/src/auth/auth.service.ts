@@ -4,6 +4,8 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 
 
 
@@ -15,7 +17,7 @@ export class AuthService {
         private config: ConfigService
     ) {}
 
-    async register(dto) {
+    async register(dto: RegisterDto) {
         const hash = await bcrypt.hash(dto.password, 10);
         try {
             const user = await this.prisma.user.create({
@@ -34,7 +36,7 @@ export class AuthService {
     }
 
 
-    async login(dto) {
+    async login(dto: LoginDto) {
         const user = await this.prisma.user.findUnique({ where: { email: dto.email } });
         if (!user) throw new ForbiddenException('Invalid credentials');
 
@@ -53,7 +55,7 @@ export class AuthService {
         try {
             await this.prisma.user.update({
                 where: { id: userId },
-                data: { refreshToken: undefined }, // ใช้ undefined แทน null
+                data: { refreshToken: null },
             });
             return { message: 'Logged out successfully' };
         } catch (error) {
@@ -75,7 +77,11 @@ export class AuthService {
         if (!user || !user.refreshToken) throw new ForbiddenException('Access Denied');
 
         const rtMatches = await bcrypt.compare(rt, user.refreshToken);
-        if (!rtMatches) throw new ForbiddenException('Access Denied');
+        if (!rtMatches){
+            console.warn(`Refresh token mismatch for user ${userId}`);
+            throw new ForbiddenException('Access Denied');
+        }
+
 
         const tokens = await this.getTokens(user.id, user.email,user.name, user.role);
         await this.updateRefreshToken(user.id, tokens.refresh_token);
