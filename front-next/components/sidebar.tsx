@@ -33,93 +33,30 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
+import { useUser } from '@/context/UserContext';
 
 export function Sidebar() {
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user, isLoading, logout } = useUser()
   const router = useRouter();
   const pathname = usePathname();
   const { isOpen, toggle } = useSidebar();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // เพิ่ม effect นี้เพื่อให้แน่ใจว่า component จะแสดงเฉพาะฝั่ง client เท่านั้น
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push("/")
+    }
+  }, [user, isLoading]);
+
+
   useEffect(() => {
     setMounted(true);
   }, []);
 
+  if (!mounted || isLoading) return null
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const token = localStorage.getItem('access_token');
-      if (!token) {
-        router.push('/');
-        return;
-      }
-
-      try {
-        const res = await fetchWithAutoRefresh('http://localhost:3001/auth/me', token);
-        if (!res.ok) throw new Error('Unauthorized');
-
-        const data = await res.json();
-        setUser(data);
-      } catch (err) {
-        console.error('Failed to fetch user:', err);
-        router.push('/');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchUser();
-  }, [router]);
-
-
-  const fetchWithAutoRefresh = async (url: string, token: string) => {
-    let res = await fetch(url, {
-      method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      },
-      credentials: 'include',
-    });
-
-    if (res.status === 401) {
-      // ลอง refresh token
-      const refreshRes = await fetch('http://localhost:3001/auth/refresh', {
-        method: 'POST',
-        credentials: 'include',
-      });
-
-      if (!refreshRes.ok) {
-        throw new Error('Unable to refresh token');
-      }
-
-      const refreshData = await refreshRes.json();
-      localStorage.setItem('access_token', refreshData.access_token);
-
-      // ลองเรียกอีกครั้งด้วย access token ใหม่
-      res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          Authorization: `Bearer ${refreshData.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-      });
-    }
-
-    return res;
-  };
-
-
-  const handleLogout = () => {
-    localStorage.removeItem('access_token');
-    router.push('/');
-  };
-
-  // if (isLoading) return <div>Loading...</div>
 
   return (
     <>
@@ -319,7 +256,7 @@ export function Sidebar() {
                   <DropdownMenuItem>Profile</DropdownMenuItem>
                   <DropdownMenuItem>Settings</DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleLogout}>
+                  <DropdownMenuItem onClick={logout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>

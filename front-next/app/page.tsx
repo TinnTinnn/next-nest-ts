@@ -1,51 +1,71 @@
-"use client"
+'use client';
 
 import React, { useState } from 'react';
 
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Box, KeyRound } from "lucide-react"
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Box, KeyRound } from 'lucide-react';
 import { error } from 'next/dist/build/output/log';
+import { useUser } from '@/context/UserContext';
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const router = useRouter();
+  const { setUser, reFetchUser } = useUser();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
 
   const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:3001/auth/login", {
-        method: "POST",
+      const response = await fetch('http://localhost:3001/auth/login', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
-        credentials: "include",
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
-      })
+      });
 
       if (!response.ok) {
-        throw new Error("Login failed.")
+        throw new Error('Login failed.');
       }
 
-      const data = await response.json()
-      console.log("Login success:", data);
+      const data = await response.json();
+      console.log('Login success:', data);
 
-    //   save access_token (optional: localStorage)
-      localStorage.setItem("access_token", data.accesss_token)
-      router.push("/dashboard")
+      //   save access_token (optional: localStorage)
+      localStorage.setItem('access_token', data.access_token);
+
+      // ดึง /auth/me มาใส่ context ทันที
+      const meRes = await fetch('http://localhost:3001/auth/me', {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${data.access_token}`,
+          "Content-type": "application/json",
+        },
+        credentials: 'include',
+      });
+
+      if (!meRes.ok) throw new Error('Failed to fetch user');
+
+      const me = await meRes.json();
+      setUser(me);
+
+      router.push('/dashboard');
     } catch (error) {
-      console.error("Login error:", error);
-      alert("Login failed. Please check your email and password")
+      console.error('Login error:', error);
+      alert('Login failed. Please check your email and password');
     }
-  }
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-muted/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
+    <div
+      className="flex items-center justify-center min-h-screen bg-muted/40 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/10 via-background to-background">
       <Card className="w-full max-w-md shadow-lg border-primary/10">
         <CardHeader className="space-y-1 flex flex-col items-center">
           <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary/10 mb-4">
@@ -90,5 +110,5 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }
