@@ -13,9 +13,12 @@ import {
 import { ChevronLeft, ChevronRight, Edit, Key, MoreHorizontal, Search, Trash2, UserPlus } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { PageHeader } from "@/components/page-header"
+import AdminRoute from '@/components/AdminRoute';
+
 
 export default function UsersPage() {
   return (
+    <AdminRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Users"
@@ -281,5 +284,6 @@ export default function UsersPage() {
         </div>
       </main>
     </div>
+      </AdminRoute>
   )
 }

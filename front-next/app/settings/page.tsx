@@ -7,9 +7,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { PageHeader } from "@/components/page-header"
+import AdminRoute from '@/components/AdminRoute';
 
 export default function SettingsPage() {
   return (
+    <AdminRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader title="Settings" description="Manage system settings" />
 
@@ -222,5 +224,6 @@ export default function SettingsPage() {
         </Tabs>
       </main>
     </div>
+    </AdminRoute>
   )
 }

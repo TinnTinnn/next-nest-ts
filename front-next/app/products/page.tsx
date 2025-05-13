@@ -23,9 +23,11 @@ import {
   Upload,
 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
+import ProtectedRoute from "@/components/ProtectedRoute"
 
 export default function ProductsPage() {
   return (
+    <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Products"
@@ -314,5 +316,6 @@ export default function ProductsPage() {
         </div>
       </main>
     </div>
+      </ProtectedRoute>
   )
 }

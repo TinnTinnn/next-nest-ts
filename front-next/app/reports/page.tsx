@@ -6,9 +6,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { format } from "date-fns"
 import { CalendarIcon, Download, FileSpreadsheet, FileText, Printer } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ReportsPage() {
   return (
+    <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader title="Reports" description="Reports and analytics for inventory management" />
 
@@ -271,5 +273,6 @@ export default function ReportsPage() {
         </div>
       </main>
     </div>
+      </ProtectedRoute>
   )
 }

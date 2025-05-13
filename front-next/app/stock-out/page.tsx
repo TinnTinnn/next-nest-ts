@@ -10,9 +10,11 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns"
 import { CalendarIcon, Minus, Plus, Search, ShoppingCart, Trash2 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function StockOutPage() {
   return (
+    <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader title="Stock Out" description="Record items being taken out of inventory" />
 
@@ -258,5 +260,6 @@ export default function StockOutPage() {
         </Card>
       </main>
     </div>
+      </ProtectedRoute>
   )
 }

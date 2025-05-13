@@ -17,9 +17,11 @@ import {
 import { PageHeader } from "@/components/page-header"
 import { RecentActivitiesTable } from "@/components/recent-activities-table"
 import { StockChart } from "@/components/stock-chart"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function DashboardPage() {
   return (
+    <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Dashboard"
@@ -253,5 +255,6 @@ export default function DashboardPage() {
         </Tabs>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

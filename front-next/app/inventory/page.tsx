@@ -5,9 +5,11 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { ChevronLeft, ChevronRight, Download, History, QrCode, Search } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
+import ProtectedRoute from "@/components/ProtectedRoute"
 
 export default function InventoryPage() {
   return (
+    <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Inventory Check"
@@ -187,5 +189,6 @@ export default function InventoryPage() {
         </div>
       </main>
     </div>
+    </ProtectedRoute>
   )
 }

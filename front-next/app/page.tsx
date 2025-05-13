@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { error } from 'next/dist/build/output/log';
 import { useUser } from '@/context/UserContext';
 
 export default function LoginPage() {
+  const { user, isLoading } = useUser()
   const router = useRouter();
   const { setUser, reFetchUser } = useUser();
   const [email, setEmail] = useState('');
@@ -62,6 +63,14 @@ export default function LoginPage() {
       alert('Login failed. Please check your email and password');
     }
   };
+
+  useEffect(() => {
+    if (!isLoading && user) {
+      router.push('/dashboard');
+    }
+  },[user, isLoading])
+
+  if (isLoading) return null
 
   return (
     <div
