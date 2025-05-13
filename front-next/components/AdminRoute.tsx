@@ -12,13 +12,13 @@ export default function AdminRoute({ children } : { children: React.ReactNode })
     if (!isLoading) {
       if (!user) {
         router.push('/')  // ไม่ login เตะ กลับไป login
-      } else if (user.role !== 'admin') {
+      } else if (user.role?.toLowerCase() !== 'admin') {
         router.push('/unauthorized') // ไม่ใช่ admin เตะไปหน้า ห้ามเข้า
       }
     }
   }, [isLoading, user])
 
-  if (isLoading || !user || user.role !== 'admin') {
+  if (isLoading || !user || user.role?.toLowerCase() !== 'admin') {
     return null  // loading หรือยังไม่ผ่าน จะไม่ render
 }
   return <>{children}</>
