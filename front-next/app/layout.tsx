@@ -6,8 +6,14 @@ import { ThemeProvider } from '@/components/theme-provider';
 import { SidebarProvider } from '@/components/sidebar-provider';
 import { Sidebar } from '@/components/sidebar';
 import { UserProvider } from '@/context/UserContext';
+import { Toaster } from '@/components/ui/toaster';
 
 const inter = Inter({ subsets: ['latin'] });
+export const metadata: Metadata = {
+  title: "Office Inventory Management System",
+  description: "A comprehensive inventory management system for office supplies",
+}
+
 
 export default function RootLayout({
                                      children,
@@ -25,6 +31,7 @@ export default function RootLayout({
             <div className="flex-1">{children}</div>
           </div>
         </SidebarProvider>
+        <Toaster />
       </UserProvider>
     </ThemeProvider>
     </body>

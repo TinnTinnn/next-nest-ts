@@ -1,3 +1,5 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -23,9 +25,18 @@ import {
   Upload,
 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
-import ProtectedRoute from "@/components/ProtectedRoute"
+import { useState } from "react"
+import { AddProductModal } from "@/components/products/add-product-modal"
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function ProductsPage() {
+  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false)
+
+  const refreshProducts = () => {
+    // In a real app, this would fetch the latest products
+    console.log("Refreshing products list...")
+  }
+
   return (
     <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
@@ -42,7 +53,7 @@ export default function ProductsPage() {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button size="sm">
+            <Button size="sm" onClick={() => setIsAddProductModalOpen(true)}>
               <PackagePlus className="mr-2 h-4 w-4" />
               Add Product
             </Button>
@@ -315,7 +326,12 @@ export default function ProductsPage() {
           </div>
         </div>
       </main>
+      <AddProductModal
+        open={isAddProductModalOpen}
+        onOpenChange={setIsAddProductModalOpen}
+        onProductAdded={refreshProducts}
+      />
     </div>
-      </ProtectedRoute>
+    </ProtectedRoute>
   )
 }
