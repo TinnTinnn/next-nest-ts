@@ -23,7 +23,7 @@ export default function LoginPage() {
     e.preventDefault();
 
     try {
-      const response = await fetch('http://localhost:3001/auth/login', {
+      const response = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -43,7 +43,7 @@ export default function LoginPage() {
       localStorage.setItem('access_token', data.access_token);
 
       // ดึง /auth/me มาใส่ context ทันที
-      const meRes = await fetch('http://localhost:3001/auth/me', {
+      const meRes = await fetch('http://localhost:3001/api/auth/me', {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${data.access_token}`,

@@ -5,9 +5,22 @@ import { AuthModule } from './auth/auth.module';
 import { PrismaModule } from './prisma/prisma.module';
 
 import { RefreshTokenMiddleware } from './auth/middleware/refresh-token.middleware';
+import { StockInModule } from './stock-in/stock-in.module';
+import { StockOutModule } from './stock-out/stock-out.module';
+import { ProductsModule } from './products/products.module';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [AuthModule, PrismaModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    AuthModule,
+    PrismaModule,
+    ProductsModule,
+    StockInModule,
+    StockOutModule
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

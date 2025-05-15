@@ -48,7 +48,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     })
 
     if (res.status === 401) {
-      const refreshRes = await fetch('http://localhost:3001/auth/refresh', {
+      const refreshRes = await fetch('http://localhost:3001/api/auth/refresh', {
         method: 'POST',
         credentials: 'include',
       })
@@ -81,7 +81,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      const res = await fetchWithAutoRefresh('http://localhost:3001/auth/me', token)
+      const res = await fetchWithAutoRefresh('http://localhost:3001/api/auth/me', token)
       if (!res.ok) throw new Error('Unauthorized')
 
       const data = await res.json()

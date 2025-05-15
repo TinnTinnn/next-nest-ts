@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -28,4 +22,55 @@ model User {
 enum Role {
   ADMIN
   STAFF
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  productId   String   @unique
+  name        String
+  category    String
+  unit        String
+  price       Float
+  minStock    Int      @default(10)
+  quantity    Int      @default(0)
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  StockIns  StockIn[]
+  StockOuts StockOut[]
+}
+
+model StockIn {
+  id        String   @id @default(uuid())
+  reference String   @unique
+  date      DateTime
+  supplier  String
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  unitPrice Float
+}
+
+model StockOut {
+  id         String   @id @default(uuid())
+  reference  String   @unique
+  date       DateTime
+  department String
+  requester  String
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  unitPrice Float
 }
