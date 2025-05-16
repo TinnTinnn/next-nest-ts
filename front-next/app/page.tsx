@@ -18,6 +18,14 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
+  // Check is  token already have?
+  useEffect(() => {
+    const accessToken = localStorage.getItem("access_token")
+    if (accessToken) {
+      router.push("/dashboard")
+    }
+  }, [router])
+
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -25,16 +26,144 @@ import {
   Upload,
 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
-import { useState } from "react"
 import { AddProductModal } from "@/components/products/add-product-modal"
+import { toast } from "@/components/ui/use-toast"
+import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import { fetchWithAuth } from '@/lib/auth';
+
+
+// Product data type
+interface Product {
+  id: string
+  productId: string
+  name: string
+  category: string
+  unit: string
+  quantity: number
+  price: number
+  minStock: number
+  description?: string
+  createdAt: string
+  updatedAt: string
+}
 
 export default function ProductsPage() {
-  const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false)
+  // State for products data
+  const [products, setProducts] = useState<Product[]>([])
+  // State for loading
+  const [loading, setLoading] = useState(true)
+  // State for add product modal
+  const [showAddModal, setShowAddModal] = useState(false)
+  // State for search term
+  const [searchTerm, setSearchTerm] = useState("")
+  // State for category filter
+  const [categoryFilter, setCategoryFilter] = useState("all")
+  // State for status filter
+  const [statusFilter, setStatusFilter] = useState("all")
 
-  const refreshProducts = () => {
-    // In a real app, this would fetch the latest products
-    console.log("Refreshing products list...")
+  // Function to fetch all products
+  const fetchProducts = async () => {
+    setLoading(true)
+    try {
+      // Create URL with query parameters
+      let url = "/api/products"
+      const params = new URLSearchParams()
+
+      if (searchTerm) {
+        params.append("search", searchTerm)
+      }
+
+      if (categoryFilter !== "all") {
+        params.append("category", categoryFilter)
+      }
+
+      if (statusFilter !== "all") {
+        params.append("status", statusFilter)
+      }
+
+      if (params.toString()) {
+        url += `?${params.toString()}`
+      }
+
+      // Call API
+      const response = await fetch(url)
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch products")
+      }
+
+      const data = await response.json()
+      setProducts(data.success ? data.products : data)
+    } catch (error) {
+      console.error("Error fetching products:", error)
+      toast({
+        title: "Error",
+        description: "Failed to fetch products. Please try again.",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch products when component loads or filters change
+  useEffect(() => {
+    fetchProducts()
+  }, [searchTerm, categoryFilter, statusFilter])
+
+  // Function to delete product
+  const handleDeleteProduct = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this product?")) {
+      return
+    }
+
+    try {
+      const response = await fetchWithAuth(`/api/products/${id}`, {
+        method: "DELETE",
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || "Failed to delete product")
+      }
+
+      toast({
+        title: "Product Deleted",
+        description: "The product has been removed from the system",
+      })
+
+      // Refresh product list
+      fetchProducts()
+    } catch (error) {
+      console.error("Error deleting product:", error)
+
+      // Check if error is related to authentication
+      if (error instanceof Error && error.message.includes("Authentication")) {
+        toast({
+          title: "Failed to Delete Product",
+          description: "Please login before proceeding",
+          variant: "destructive",
+        })
+      } else {
+        toast({
+          title: "Failed to Delete Product",
+          description: error instanceof Error ? error.message : "An unknown error occurred",
+          variant: "destructive",
+        })
+      }
+    }
+  }
+
+  // Function to determine product status
+  const getProductStatus = (product: Product) => {
+    if (product.quantity <= 0) {
+      return { label: "Out of Stock", className: "bg-red-500/10 text-red-600 border-red-200" }
+    } else if (product.quantity <= product.minStock) {
+      return { label: "Low Stock", className: "bg-yellow-500/10 text-yellow-600 border-yellow-200" }
+    } else {
+      return { label: "In Stock", className: "bg-green-500/10 text-green-600 border-green-200" }
+    }
   }
 
   return (
@@ -53,7 +182,7 @@ export default function ProductsPage() {
               <Download className="mr-2 h-4 w-4" />
               Export
             </Button>
-            <Button size="sm" onClick={() => setIsAddProductModalOpen(true)}>
+            <Button size="sm" onClick={() => setShowAddModal(true)}>
               <PackagePlus className="mr-2 h-4 w-4" />
               Add Product
             </Button>
@@ -67,10 +196,16 @@ export default function ProductsPage() {
             <div className="flex flex-1 items-center space-x-2">
               <div className="relative w-full md:w-80">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input type="search" placeholder="Search products..." className="w-full pl-8 border-primary/20" />
+                <Input
+                  type="search"
+                  placeholder="Search products..."
+                  className="w-full pl-8 border-primary/20"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
               <div className="flex items-center space-x-2">
-                <Select defaultValue="all">
+                <Select defaultValue="all" value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger className="w-[180px] border-primary/20">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -82,7 +217,7 @@ export default function ProductsPage() {
                     <SelectItem value="electrical">Electronics</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select defaultValue="all">
+                <Select defaultValue="all" value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[180px] border-primary/20">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -104,206 +239,78 @@ export default function ProductsPage() {
                 <TableHead>Category</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Quantity</TableHead>
-                <TableHead className="text-right">Unit Price</TableHead>
+                <TableHead className="text-right">Price per Unit</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow className="hover:bg-muted/50">
-                <TableCell className="font-medium">P001</TableCell>
-                <TableCell>A4 Paper Double A</TableCell>
-                <TableCell>Stationery</TableCell>
-                <TableCell>Ream</TableCell>
-                <TableCell className="text-right">120</TableCell>
-                <TableCell className="text-right">$12.00</TableCell>
-                <TableCell>
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200">In Stock</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <PackagePlus className="mr-2 h-4 w-4" />
-                        Stock In
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/50">
-                <TableCell className="font-medium">P002</TableCell>
-                <TableCell>HP 678 Black Ink Cartridge</TableCell>
-                <TableCell>IT Equipment</TableCell>
-                <TableCell>Cartridge</TableCell>
-                <TableCell className="text-right">8</TableCell>
-                <TableCell className="text-right">$45.00</TableCell>
-                <TableCell>
-                  <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-200">Low Stock</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <PackagePlus className="mr-2 h-4 w-4" />
-                        Stock In
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/50">
-                <TableCell className="font-medium">P003</TableCell>
-                <TableCell>A4 Blue File Folders</TableCell>
-                <TableCell>Office Supplies</TableCell>
-                <TableCell>Folder</TableCell>
-                <TableCell className="text-right">45</TableCell>
-                <TableCell className="text-right">$6.50</TableCell>
-                <TableCell>
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200">In Stock</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <PackagePlus className="mr-2 h-4 w-4" />
-                        Stock In
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/50">
-                <TableCell className="font-medium">P004</TableCell>
-                <TableCell>Stapler No.10</TableCell>
-                <TableCell>Stationery</TableCell>
-                <TableCell>Unit</TableCell>
-                <TableCell className="text-right">12</TableCell>
-                <TableCell className="text-right">$8.50</TableCell>
-                <TableCell>
-                  <Badge className="bg-green-500/10 text-green-600 border-green-200">In Stock</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <PackagePlus className="mr-2 h-4 w-4" />
-                        Stock In
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-              <TableRow className="hover:bg-muted/50">
-                <TableCell className="font-medium">P005</TableCell>
-                <TableCell>Yellow Post-it Notes</TableCell>
-                <TableCell>Stationery</TableCell>
-                <TableCell>Pack</TableCell>
-                <TableCell className="text-right">0</TableCell>
-                <TableCell className="text-right">$4.50</TableCell>
-                <TableCell>
-                  <Badge className="bg-red-500/10 text-red-600 border-red-200">Out of Stock</Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem>
-                        <Edit className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <PackagePlus className="mr-2 h-4 w-4" />
-                        Stock In
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-10">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                      <p className="mt-2 text-sm text-muted-foreground">Loading data...</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : products.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-10">
+                    <p className="text-muted-foreground">No products found</p>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                products.map((product) => {
+                  const status = getProductStatus(product)
+                  return (
+                    <TableRow key={product.id} className="hover:bg-muted/50">
+                      <TableCell className="font-medium">{product.productId}</TableCell>
+                      <TableCell>{product.name}</TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>{product.unit}</TableCell>
+                      <TableCell className="text-right">{product.quantity}</TableCell>
+                      <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                      <TableCell>
+                        <Badge className={status.className}>{status.label}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <span className="sr-only">Open menu</span>
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <PackagePlus className="mr-2 h-4 w-4" />
+                              Add Stock
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="text-red-600" onClick={() => handleDeleteProduct(product.id)}>
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
+              )}
             </TableBody>
           </Table>
           <div className="flex items-center justify-between px-4 py-4 border-t">
-            <div className="text-sm text-muted-foreground">Showing 1 to 5 of 42 items</div>
+            <div className="text-sm text-muted-foreground">
+              Showing 1 to {products.length} of {products.length} items
+            </div>
             <div className="flex items-center space-x-2">
               <Button variant="outline" size="sm" disabled>
                 <ChevronLeft className="h-4 w-4" />
@@ -311,12 +318,6 @@ export default function ProductsPage() {
               </Button>
               <Button variant="outline" size="sm" className="w-8">
                 1
-              </Button>
-              <Button variant="outline" size="sm" className="w-8">
-                2
-              </Button>
-              <Button variant="outline" size="sm" className="w-8">
-                3
               </Button>
               <Button variant="outline" size="sm">
                 <ChevronRight className="h-4 w-4" />
@@ -326,11 +327,12 @@ export default function ProductsPage() {
           </div>
         </div>
       </main>
-      <AddProductModal
-        open={isAddProductModalOpen}
-        onOpenChange={setIsAddProductModalOpen}
-        onProductAdded={refreshProducts}
-      />
+
+      {/* Add Product Modal */}
+      <AddProductModal open={showAddModal} onOpenChange={setShowAddModal} onProductAdded={fetchProducts} />
+
+      {/* Toaster for notifications */}
+      <Toaster />
     </div>
     </ProtectedRoute>
   )

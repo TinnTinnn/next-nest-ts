@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
+import { fetchWithAuth } from '@/lib/auth';
 
 // Define the form schema with Zod
 const productFormSchema = z.object({
@@ -26,7 +27,7 @@ const productFormSchema = z.object({
   name: z.string().min(2, "Product name must be at least 2 characters"),
   category: z.string().min(1, "Category is required"),
   unit: z.string().min(1, "Unit is required"),
-  price: z.coerce.number().positive("Price must be positive"),
+  price: z.coerce.number().positive("Price must be a positive number"),
   minStock: z.coerce.number().int().nonnegative("Minimum stock must be a non-negative integer"),
   description: z.string().optional(),
   initialStock: z.coerce.number().int().nonnegative("Initial stock must be a non-negative integer"),
@@ -64,8 +65,8 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
     setIsSubmitting(true)
 
     try {
-      // API call to your Nest.js backend
-      const response = await fetch("/api/products", {
+      // Send data to API with fetchWithAuth function
+      const response = await fetchWithAuth("/api/products", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -78,9 +79,11 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
         throw new Error(errorData.message || "Failed to add product")
       }
 
+      const result = await response.json()
+
       toast({
-        title: "Product added successfully",
-        description: `${data.name} has been added to the inventory.`,
+        title: "Product Added Successfully",
+        description: `${data.name} has been added to the system`,
       })
 
       // Reset form and close modal
@@ -93,11 +96,24 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
       }
     } catch (error) {
       console.error("Error adding product:", error)
-      toast({
-        title: "Error adding product",
-        description: error instanceof Error ? error.message : "An unknown error occurred",
-        variant: "destructive",
-      })
+
+      // Check if error is related to authentication
+      if (error instanceof Error && error.message.includes("Authentication")) {
+        toast({
+          title: "Failed to Add Product",
+          description: "Please login before proceeding",
+          variant: "destructive",
+        })
+
+        // May redirect to login page here
+        // window.location.href = "/login"
+      } else {
+        toast({
+          title: "Failed to Add Product",
+          description: error instanceof Error ? error.message : "An unknown error occurred",
+          variant: "destructive",
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -105,17 +121,10 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="
-        sm:max-w-[600px]
-        max-h-[calc(100vh-2rem)]
-        overflow-y-auto
-        p-6
-        "
-      >
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
-          <DialogDescription>Fill in the details to add a new product to the inventory system.</DialogDescription>
+          <DialogDescription>Enter product details to add a new product to the system</DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -210,7 +219,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                 name="price"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Unit Price ($)</FormLabel>
+                    <FormLabel>Price per Unit ($)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" min="0" {...field} />
                     </FormControl>
@@ -224,7 +233,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                 name="minStock"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Minimum Stock Level</FormLabel>
+                    <FormLabel>Minimum Stock</FormLabel>
                     <FormControl>
                       <Input type="number" min="0" {...field} />
                     </FormControl>
@@ -240,7 +249,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
               name="initialStock"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Initial Stock Quantity</FormLabel>
+                  <FormLabel>Initial Stock</FormLabel>
                   <FormControl>
                     <Input type="number" min="0" {...field} />
                   </FormControl>
@@ -257,7 +266,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Enter product description and details" className="resize-none" {...field} />
+                    <Textarea placeholder="Enter product description" className="resize-none" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
