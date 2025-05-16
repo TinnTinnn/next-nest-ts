@@ -1,9 +1,22 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Query, HttpStatus, HttpCode } from "@nestjs/common"
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Query,
+  HttpStatus,
+  HttpCode,
+  UseGuards,
+} from '@nestjs/common';
 import  { ProductsService } from "./products.service"
 import  { CreateProductDto } from "./dto/create-product.dto"
 import  { UpdateProductDto } from "./dto/update-product.dto"
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from "@nestjs/swagger"
 import { ProductResponseDto } from "./dto/product-response.dto"
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags("products")
 @Controller("products")
@@ -11,6 +24,7 @@ export class ProductsController {
   constructor(private readonly productsService: ProductsService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new product' })
   @ApiResponse({ status: 201, description: 'The product has been successfully created.', type: ProductResponseDto })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -76,6 +90,7 @@ export class ProductsController {
   }
 
   @Patch(":id")
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Update a product" })
   @ApiResponse({ status: 200, description: "The product has been successfully updated.", type: ProductResponseDto })
   @ApiResponse({ status: 404, description: "Product not found." })
@@ -86,6 +101,7 @@ export class ProductsController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a product' })
   @ApiResponse({ status: 204, description: 'The product has been successfully deleted.' })
