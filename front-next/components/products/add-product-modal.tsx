@@ -121,7 +121,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Add New Product</DialogTitle>
           <DialogDescription>Enter product details to add a new product to the system</DialogDescription>
