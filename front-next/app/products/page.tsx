@@ -119,7 +119,7 @@ export default function ProductsPage() {
     }
 
     try {
-      const response = await fetchWithAuth(`/api/products/${id}`, {
+      const response = await fetchWithAuth(`http://localhost:3001/api/products/${id}`, {
         method: "DELETE",
       })
 
