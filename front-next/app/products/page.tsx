@@ -27,6 +27,8 @@ import {
 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { AddProductModal } from "@/components/products/add-product-modal"
+import { EditProductModal } from "@/components/products/edit-product-modal"
+import { AddStockModal } from "@/components/products/add-stock-modal"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -55,6 +57,12 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true)
   // State for add product modal
   const [showAddModal, setShowAddModal] = useState(false)
+  // State for edit product modal
+  const [showEditModal, setShowEditModal] = useState(false)
+  // State for add stock modal
+  const [showAddStockModal, setShowAddStockModal] = useState(false)
+  // State for selected product
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   // State for search term
   const [searchTerm, setSearchTerm] = useState("")
   // State for category filter
@@ -185,6 +193,19 @@ export default function ProductsPage() {
       }
     }
   }
+
+  // Function to open edit modal
+  const handleEditProduct = (product: Product) => {
+    setSelectedProduct(product)
+    setShowEditModal(true)
+  }
+
+  // Function to open add stock modal
+  const handleAddStock = (product: Product) => {
+    setSelectedProduct(product)
+    setShowAddStockModal(true)
+  }
+
 
   // Function to determine product status
   const getProductStatus = (product: Product) => {
@@ -318,11 +339,11 @@ export default function ProductsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleAddStock(product)}>
                               <PackagePlus className="mr-2 h-4 w-4" />
                               Add Stock
                             </DropdownMenuItem>
@@ -394,6 +415,23 @@ export default function ProductsPage() {
 
       {/* Add Product Modal */}
       <AddProductModal open={showAddModal} onOpenChange={setShowAddModal} onProductAdded={fetchProducts} />
+
+      {/* Edit Product Modal */}
+      <EditProductModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        onProductUpdated={fetchProducts}
+        productId={selectedProduct?.id || null}
+      />
+
+      {/* Add Stock Modal */}
+      <AddStockModal
+        open={showAddStockModal}
+        onOpenChange={setShowAddStockModal}
+        onStockAdded={fetchProducts}
+        productId={selectedProduct?.id || null}
+        productName={selectedProduct?.name || ""}
+      />
 
       {/* Toaster for notifications */}
       <Toaster />

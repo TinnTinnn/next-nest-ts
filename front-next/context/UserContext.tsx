@@ -81,7 +81,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
     }
 
     try {
-      const res = await fetchWithAutoRefresh('http://localhost:3001/api/auth/me', token)
+      const res = await fetchWithAutoRefresh('1/api/auth/me', token)
       if (!res.ok) throw new Error('Unauthorized')
 
       const data = await res.json()
