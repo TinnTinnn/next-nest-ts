@@ -61,6 +61,11 @@ export default function ProductsPage() {
   const [categoryFilter, setCategoryFilter] = useState("all")
   // State for status filter
   const [statusFilter, setStatusFilter] = useState("all")
+  // State for pagination
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalItems, setTotalItems] = useState(0)
+  const itemsPerPage = 10
 
   // Function to fetch all products
   const fetchProducts = async () => {
@@ -82,6 +87,10 @@ export default function ProductsPage() {
         params.append("status", statusFilter)
       }
 
+      // Add pagination parameters
+      params.append("page", currentPage.toString())
+      params.append("limit", itemsPerPage.toString())
+
       if (params.toString()) {
         url += `?${params.toString()}`
       }
@@ -94,7 +103,18 @@ export default function ProductsPage() {
       }
 
       const data = await response.json()
-      setProducts(data.success ? data.products : data)
+
+      //
+      const productsData = data.success ? data.products : data
+      setProducts(productsData)
+
+
+      // คำนวณจำนวนหน้าทั้งหมด
+      const total = productsData.length // ในระบบจริง ควรได้จาก API
+      setTotalItems(total)
+      setTotalPages(Math.ceil(total / itemsPerPage))
+
+
     } catch (error) {
       console.error("Error fetching products:", error)
       toast({
@@ -107,10 +127,20 @@ export default function ProductsPage() {
     }
   }
 
+
+
   // Fetch products when component loads or filters change
   useEffect(() => {
     fetchProducts()
-  }, [searchTerm, categoryFilter, statusFilter])
+  }, [searchTerm, categoryFilter, statusFilter, currentPage])
+
+  // Function to handle page change
+  const handlePageChange = (page: number) => {
+    if (page < 1 || page > totalPages) return
+    setCurrentPage(page)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
 
   // Function to delete product
   const handleDeleteProduct = async (id: string) => {
@@ -262,7 +292,9 @@ export default function ProductsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                products.map((product) => {
+                products
+                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                  .map((product) => {
                   const status = getProductStatus(product)
                   return (
                     <TableRow key={product.id} className="hover:bg-muted/50">
@@ -310,17 +342,48 @@ export default function ProductsPage() {
           </Table>
           <div className="flex items-center justify-between px-4 py-4 border-t">
             <div className="text-sm text-muted-foreground">
-              Showing 1 to {products.length} of {products.length} items
+              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
             </div>
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" disabled>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+              >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous</span>
               </Button>
-              <Button variant="outline" size="sm" className="w-8">
-                1
-              </Button>
-              <Button variant="outline" size="sm">
+              
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                // แสดงหน้าปัจจุบันและหน้าที่อยู่ข้างเคียง
+                let pageNum = currentPage <= 3 
+                  ? i + 1 
+                  : currentPage >= totalPages - 2 
+                    ? totalPages - 4 + i 
+                    : currentPage - 2 + i;
+                
+                if (pageNum < 1 || pageNum > totalPages) return null;
+                
+                return (
+                  <Button 
+                    key={pageNum} 
+                    variant={currentPage === pageNum ? "default" : "outline"} 
+                    size="sm" 
+                    className="w-8"
+                    onClick={() => handlePageChange(pageNum)}
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
+              
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
                 <ChevronRight className="h-4 w-4" />
                 <span className="sr-only">Next</span>
               </Button>
