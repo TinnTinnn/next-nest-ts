@@ -80,6 +80,7 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
       toast({
         title: "Stock Added Successfully",
         description: `Added ${data.quantity} units to ${productName}`,
+        variant: "success"
       })
 
       onOpenChange(false)
