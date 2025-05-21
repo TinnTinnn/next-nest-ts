@@ -59,14 +59,14 @@ export const refreshAccessToken = async (): Promise<string | null> => {
     }
 
     const data = await response.json()
-    localStorage.setItem("access_token", data.access_token) // เปลี่ยนเป็น access_token
+    localStorage.setItem("access_token", data.access_token) 
 
     // เก็บ refresh_token ด้วยถ้า API ส่งกลับมา
     if (data.refresh_token) {
       localStorage.setItem("refresh_token", data.refresh_token)
     }
 
-    return data.access_token // เปลี่ยนเป็น access_token
+    return data.access_token 
   } catch (error) {
     console.error("Error refreshing token:", error)
     logout()
@@ -81,8 +81,10 @@ export const logout = () => {
   localStorage.removeItem("access_token")
   localStorage.removeItem("refresh_token")
 
-  // Redirect to login page if needed
-  window.location.href = "/"
+   // หน่วงเวลา 3 วิ ก่อน redirect
+  setTimeout(() => {
+    window.location.href = "/";
+  }, 3000); // 3 วินาที
 }
 
 // Function to call API that requires authentication

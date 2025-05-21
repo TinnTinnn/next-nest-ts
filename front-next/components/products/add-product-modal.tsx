@@ -107,6 +107,8 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
 
         // May redirect to login page here
         // window.location.href = "/login"
+        // auth.ts are take care for redirect now.
+
       } else {
         toast({
           title: "Failed to Add Product",

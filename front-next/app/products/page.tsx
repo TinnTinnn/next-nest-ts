@@ -167,7 +167,7 @@ export default function ProductsPage() {
   }
 
   return (
-    <ProtectedRoute>
+    // <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Products"
@@ -334,6 +334,6 @@ export default function ProductsPage() {
       {/* Toaster for notifications */}
       <Toaster />
     </div>
-    </ProtectedRoute>
+    // </ProtectedRoute>
   )
 }
