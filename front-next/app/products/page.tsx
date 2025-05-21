@@ -131,6 +131,7 @@ export default function ProductsPage() {
       toast({
         title: "Product Deleted",
         description: "The product has been removed from the system",
+        variant: "success"
       })
 
       // Refresh product list

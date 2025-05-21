@@ -84,6 +84,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
       toast({
         title: "Product Added Successfully",
         description: `${data.name} has been added to the system`,
+        variant: 'success'
       })
 
       // Reset form and close modal
