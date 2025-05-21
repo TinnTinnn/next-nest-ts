@@ -63,9 +63,8 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
     setIsSubmitting(true)
 
     try {
-      // ในระบบจริง คุณอาจจะต้องสร้าง API endpoint สำหรับการเพิ่ม stock โดยเฉพาะ
-      // แต่ในตัวอย่างนี้ เราจะใช้ API endpoint ที่มีอยู่แล้ว
-      const response = await fetchWithAuth(`/api/products/${productId}/stock`, {
+      // Call the NestJS backend directly
+      const response = await fetchWithAuth(`http://localhost:3001/api/products/${productId}/stock`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -91,19 +90,6 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
       }
     } catch (error) {
       console.error("Error adding stock:", error)
-
-      // Fallback if API doesn't exist yet
-      if (error instanceof Error && error.message.includes("404")) {
-        toast({
-          title: "Stock Added (Demo)",
-          description: `Added ${data.quantity} units to ${productName} (This is a demo, API not implemented yet)`,
-        })
-        onOpenChange(false)
-        if (onStockAdded) {
-          onStockAdded()
-        }
-        return
-      }
 
       // Check if error is related to authentication
       if (error instanceof Error && error.message.includes("Authentication")) {
