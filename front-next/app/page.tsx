@@ -10,13 +10,15 @@ import { Label } from '@/components/ui/label';
 import { Box, KeyRound } from 'lucide-react';
 import { error } from 'next/dist/build/output/log';
 import { useUser } from '@/context/UserContext';
+import { toast } from '@/components/ui/use-toast';
 
 export default function LoginPage() {
-  const { user, isLoading } = useUser()
+  const { user } = useUser()
   const router = useRouter();
   const { setUser, reFetchUser } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false)
 
   // Check is  token already have?
   useEffect(() => {
@@ -29,6 +31,7 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const response = await fetch('http://localhost:3001/api/auth/login', {
@@ -50,6 +53,18 @@ export default function LoginPage() {
       //   save access_token (optional: localStorage)
       localStorage.setItem('access_token', data.access_token);
 
+      // เก็บ refresh_token ด้วยถ้ามี
+      if (data.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token)
+      }
+
+      // แสดงข้อความแจ้งเตือน
+      toast({
+        title: "Login Successful",
+        description: "Welcome back to the system",
+        variant: "success"
+      })
+
       // ดึง /auth/me มาใส่ context ทันที
       const meRes = await fetch('http://localhost:3001/api/auth/me', {
         method: 'GET',
@@ -68,7 +83,13 @@ export default function LoginPage() {
       router.push('/dashboard');
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed. Please check your email and password');
+      toast({
+        title: "Login Failed",
+        description: "Please check your email and password",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false);
     }
   };
 
