@@ -47,34 +47,26 @@ export class ProductsController {
   @ApiQuery({
     name: "status",
     required: false,
-    enum: ["all", "in-stock", "low-stock", "out-of-stock"],
+    enum: ["in-stock", "low-stock", "out-of-stock"], // Removed 'all' as it's the default
     description: "Filter by stock status",
   })
+  @ApiQuery({ name: "page", required: false, description: "Page number for pagination", type: Number, example: 1 })
+  @ApiQuery({ name: "limit", required: false, description: "Number of items per page", type: Number, example: 10 })
   async findAll(
-    @Query('category') category?: string,
     @Query('search') search?: string,
-    @Query('status') status?: 'all' | 'in-stock' | 'low-stock' | 'out-of-stock',
+    @Query('category') category?: string,
+    @Query('status') status?: 'in-stock' | 'low-stock' | 'out-of-stock',
+    @Query('page') page?: string, // Query params are strings initially
+    @Query('limit') limit?: string,
   ) {
-    if (search) {
-      return this.productsService.search(search)
-    }
+    const pageAsNum = page ? parseInt(page, 10) : 1;
+    const limitAsNum = limit ? parseInt(limit, 10) : 10;
 
-    if (category) {
-      return this.productsService.findByCategory(category)
-    }
+    // The 'status' parameter from query can be 'in-stock', 'low-stock', 'out-of-stock'.
+    // The service's findAll method expects these specific strings or undefined.
+    // No need to handle 'all' explicitly here, as not providing 'status' (or undefined) means no status filter.
 
-    if (status) {
-      switch (status) {
-        case "low-stock":
-          return this.productsService.findLowStock()
-        case "out-of-stock":
-          return this.productsService.findOutOfStock()
-        default:
-          return this.productsService.findAll()
-      }
-    }
-
-    return this.productsService.findAll()
+    return this.productsService.findAll(search, category, status, pageAsNum, limitAsNum);
   }
 
   @Get(':id')

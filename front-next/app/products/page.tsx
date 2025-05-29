@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Download,
   Edit,
+  Eye, // Import Eye icon
   MoreHorizontal,
   PackagePlus,
   Search,
@@ -29,6 +30,7 @@ import { PageHeader } from "@/components/page-header"
 import { AddProductModal } from "@/components/products/add-product-modal"
 import { EditProductModal } from "@/components/products/edit-product-modal"
 import { AddStockModal } from "@/components/products/add-stock-modal"
+import { ProductDetailModal } from "@/components/products/product-detail-modal" // Import ProductDetailModal
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from '@/components/ui/toaster';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -61,7 +63,10 @@ export default function ProductsPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   // State for add stock modal
   const [showAddStockModal, setShowAddStockModal] = useState(false)
-  // State for selected product
+  // State for product detail modal
+  const [showDetailModal, setShowDetailModal] = useState(false)
+  const [productForDetail, setProductForDetail] = useState<Product | null>(null)
+  // State for selected product (used for edit/add stock)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   // State for search term
   const [searchTerm, setSearchTerm] = useState("")
@@ -112,15 +117,16 @@ export default function ProductsPage() {
 
       const data = await response.json()
 
-      //
-      const productsData = data.success ? data.products : data
-      setProducts(productsData)
+      // Assuming the API returns { products: Product[], total: number }
+      // If the API wraps this in a 'success' field or another structure, adjust accordingly.
+      // For now, let's assume data directly contains products and total.
+      // Example: if API returns { success: true, data: { products: [], total: 0 } }, then:
+      // const responseData = data.success ? data.data : data; // Adjust based on actual API structure
 
-
-      // คำนวณจำนวนหน้าทั้งหมด
-      const total = productsData.length // ในระบบจริง ควรได้จาก API
-      setTotalItems(total)
-      setTotalPages(Math.ceil(total / itemsPerPage))
+      // Directly use data.products and data.total as per the new API contract
+      setProducts(data.products || []) // Set products for the current page
+      setTotalItems(data.total || 0)   // Set total items from the API
+      setTotalPages(Math.ceil((data.total || 0) / itemsPerPage)) // Calculate total pages
 
 
     } catch (error) {
@@ -206,6 +212,11 @@ export default function ProductsPage() {
     setShowAddStockModal(true)
   }
 
+  // Function to open detail modal
+  const handleShowDetails = (product: Product) => {
+    setProductForDetail(product)
+    setShowDetailModal(true)
+  }
 
   // Function to determine product status
   const getProductStatus = (product: Product) => {
@@ -313,8 +324,7 @@ export default function ProductsPage() {
                   </TableCell>
                 </TableRow>
               ) : (
-                products
-                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+                products // products state now holds only the items for the current page
                   .map((product) => {
                   const status = getProductStatus(product)
                   return (
@@ -339,6 +349,10 @@ export default function ProductsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleShowDetails(product)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              Detail
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
@@ -431,6 +445,13 @@ export default function ProductsPage() {
         onStockAdded={fetchProducts}
         productId={selectedProduct?.id || null}
         productName={selectedProduct?.name || ""}
+      />
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        product={productForDetail}
       />
 
       {/* Toaster for notifications */}
