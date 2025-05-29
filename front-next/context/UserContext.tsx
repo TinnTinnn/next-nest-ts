@@ -1,63 +1,115 @@
-"use client";
+"use client"
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
+import React, { createContext, useContext, useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 
 type User = {
-  id: number
-  name: string
+  id: string
   email: string
-  role: string
-} | null
-
-type UserContext = {
-  user: User
-  setUser: (user: User) => void
-  logout: () => void
+  name?: string
+  role?: string
 }
 
-const UserContext = createContext<UserContext | undefined> (undefined)
+type UserContextType = {
+  user: User | null
+  isLoading: boolean
+  setUser: (user: User | null) => void
+  logout: () => void
+  reFetchUser: () => Promise<void>
+}
 
-export const UserProvider = ({ children } :{ children : React.ReactNode }) => {
-  const [user, setUser] = useState<User>(null)
+const UserContext = createContext<UserContextType>({
+  user: null,
+  isLoading: true,
+  setUser: () => {},
+  logout: () => {},
+  reFetchUser: async () => {},
+})
 
-  // เมื่อโหลดแอพครั้งแรก ดึง user จาก backend
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('http://localhost:3001/api/auth/me', {
-          credentials: 'include',
-        })
-        if (res.ok) {
-          const data = await res.json()
-          setUser(data)
-        }
-      } catch (err) {
-        console.log('No user or error fetching /auth/me')
-      }
-    }
+export const UserProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<User | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const router = useRouter()
 
-    fetchUser()
-  }, [])
+  const logout = () => {
+    localStorage.removeItem("access_token")
+    setUser(null)
+    window.location.href = "/"
+  }
 
-  const logout = async () => {
-    await fetch('http://localhost:3001/api/auth/logout', {
-      method: 'POST',
+  const fetchWithAutoRefresh = async (url: string, token: string) => {
+    let res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
       credentials: 'include',
     })
-    setUser(null)
+
+    if (res.status === 401) {
+      const refreshRes = await fetch('http://localhost:3001/api/auth/refresh', {
+        method: 'POST',
+        credentials: 'include',
+      })
+
+      if (!refreshRes.ok) {
+        throw new Error('Unable to refresh token')
+      }
+
+      const refreshData = await refreshRes.json()
+      localStorage.setItem('access_token', refreshData.access_token)
+
+      res = await fetch(url, {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${refreshData.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        credentials: 'include',
+      })
+    }
+
+    return res
   }
+
+  const fetchUser = async () => {
+    const token = localStorage.getItem('access_token')
+    if (!token) {
+      setIsLoading(false)
+      return
+    }
+
+    try {
+      const res = await fetchWithAutoRefresh('1/api/auth/me', token)
+      if (!res.ok) throw new Error('Unauthorized')
+
+      const data = await res.json()
+      setUser(data)
+    } catch (err) {
+      console.error('Failed to fetch user:', err)
+      setUser(null)
+      localStorage.removeItem("access_token") // ล้าง token ถ้า refresh ไม่ได้
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const reFetchUser = async () => {
+    setIsLoading(true)
+    await fetchUser()
+    setIsLoading(false)
+  }
+
+  useEffect(() => {
+    reFetchUser()
+  }, [router])
+
   return (
-    <UserContext.Provider value={{ user, setUser, logout }}>
+    <UserContext.Provider value={{ user, isLoading, setUser, logout, reFetchUser }}>
       {children}
     </UserContext.Provider>
   )
 }
 
-export const useUser = () => {
-  const context = useContext(UserContext)
-  if (!context) {
-    throw new Error('useUser must be used inside UserProvider')
-  }
-  return context
-}
+export const useUser = () => useContext(UserContext)

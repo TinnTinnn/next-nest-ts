@@ -121,7 +121,6 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
       toast({
         title: "Product Updated Successfully",
         description: `${data.name} has been updated`,
-        variant: "success"
       })
 
       onOpenChange(false)

@@ -63,7 +63,7 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
     setIsSubmitting(true)
 
     try {
-
+      // Call the NestJS backend directly
       const response = await fetchWithAuth(`http://localhost:3001/api/products/${productId}/stock`, {
         method: "POST",
         headers: {
@@ -80,6 +80,7 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
       toast({
         title: "Stock Added Successfully",
         description: `Added ${data.quantity} units to ${productName}`,
+        variant: "success"
       })
 
       onOpenChange(false)
@@ -90,19 +91,6 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
       }
     } catch (error) {
       console.error("Error adding stock:", error)
-
-      // Fallback if API doesn't exist yet
-      if (error instanceof Error && error.message.includes("404")) {
-        toast({
-          title: "Stock Added (Demo)",
-          description: `Added ${data.quantity} units to ${productName} (This is a demo, API not implemented yet)`,
-        })
-        onOpenChange(false)
-        if (onStockAdded) {
-          onStockAdded()
-        }
-        return
-      }
 
       // Check if error is related to authentication
       if (error instanceof Error && error.message.includes("Authentication")) {
