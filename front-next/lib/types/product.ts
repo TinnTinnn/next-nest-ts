@@ -1,39 +1,39 @@
 export enum ProductCategory {
-  MACHINE = 'MACHINE',
-  INGREDIENT = 'INGREDIENT',
-  FLAVORING = 'FLAVORING',
-  PACKAGING = 'PACKAGING',
-  UTENSIL = 'UTENSIL',
-  INSTRUCTION = 'INSTRUCTION'
+  Machine = 'Machine',
+  Ingredient = 'Ingredient',
+  Flavoring = 'Flavoring',
+  Packaging = 'Packaging',
+  Utensil = 'Utensil',
+  Instruction = 'Instruction'
 }
 
 export enum ProductUnit {
-  UNIT = 'UNIT',
-  PIECE = 'PIECE',
-  KILOGRAM = 'KILOGRAM',
-  BOTTLE = 'BOTTLE',
-  BOX = 'BOX',
-  COPY = 'COPY',
-  PACK = 'PACK'
+  Unit = 'Unit',
+  Piece = 'Piece',
+  Kilogram = 'Kilogram',
+  Bottle = 'Bottle',
+  Box = 'Box',
+  Copy = 'Copy',
+  Pack = 'Pack'
 }
 
 export const ProductCategoryLabels: Record<ProductCategory, string> = {
-  [ProductCategory.MACHINE]: 'Machine',
-  [ProductCategory.INGREDIENT]: 'Ingredient',
-  [ProductCategory.FLAVORING]: 'Flavoring',
-  [ProductCategory.PACKAGING]: 'Packaging',
-  [ProductCategory.UTENSIL]: 'Utensil',
-  [ProductCategory.INSTRUCTION]: 'Instruction'
+  [ProductCategory.Machine]: 'Machine',
+  [ProductCategory.Ingredient]: 'Ingredient',
+  [ProductCategory.Flavoring]: 'Flavoring',
+  [ProductCategory.Packaging]: 'Packaging',
+  [ProductCategory.Utensil]: 'Utensil',
+  [ProductCategory.Instruction]: 'Instruction'
 }
 
 export const ProductUnitLabels: Record<ProductUnit, string> = {
-  [ProductUnit.UNIT]: 'Unit',
-  [ProductUnit.PIECE]: 'Piece',
-  [ProductUnit.KILOGRAM]: 'Kilogram',
-  [ProductUnit.BOTTLE]: 'Bottle',
-  [ProductUnit.BOX]: 'Box',
-  [ProductUnit.COPY]: 'Copy',
-  [ProductUnit.PACK]: 'Pack'
+  [ProductUnit.Unit]: 'Unit',
+  [ProductUnit.Piece]: 'Piece',
+  [ProductUnit.Kilogram]: 'Kilogram',
+  [ProductUnit.Bottle]: 'Bottle',
+  [ProductUnit.Box]: 'Box',
+  [ProductUnit.Copy]: 'Copy',
+  [ProductUnit.Pack]: 'Pack'
 }
 
 export const ProductCategoryOptions = Object.entries(ProductCategoryLabels).map(([value, label]) => ({

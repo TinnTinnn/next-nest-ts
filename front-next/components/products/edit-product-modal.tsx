@@ -214,11 +214,11 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>หมวดหมู่</FormLabel>
+                      <FormLabel>Category</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="เลือกหมวดหมู่" />
+                            <SelectValue placeholder="Select Category" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
@@ -239,11 +239,11 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
                   name="unit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>หน่วยนับ</FormLabel>
+                      <FormLabel>Unit</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="เลือกหน่วยนับ" />
+                            <SelectValue placeholder="Select Unit" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
