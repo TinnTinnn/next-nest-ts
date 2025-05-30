@@ -177,10 +177,12 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="stationery">Stationery</SelectItem>
-                        <SelectItem value="it">IT Equipment</SelectItem>
-                        <SelectItem value="office">Office Supplies</SelectItem>
-                        <SelectItem value="electrical">Electronics</SelectItem>
+                        <SelectItem value="machine">Machine</SelectItem>
+                        <SelectItem value="ingredient">Ingredient</SelectItem>
+                        <SelectItem value="flavoring">Flavoring</SelectItem>
+                        <SelectItem value="packaging">Packaging</SelectItem>
+                        <SelectItem value="utensil">Utensil</SelectItem>
+                        <SelectItem value="instruction">Instruction</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -201,13 +203,13 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="piece">Piece</SelectItem>
-                        <SelectItem value="box">Box</SelectItem>
-                        <SelectItem value="pack">Pack</SelectItem>
-                        <SelectItem value="ream">Ream</SelectItem>
                         <SelectItem value="unit">Unit</SelectItem>
-                        <SelectItem value="set">Set</SelectItem>
-                        <SelectItem value="cartridge">Cartridge</SelectItem>
+                        <SelectItem value="pcs">Piece</SelectItem>
+                        <SelectItem value="kg">Kg</SelectItem>
+                        <SelectItem value="bottle">Bottle</SelectItem>
+                        <SelectItem value="box">Box</SelectItem>
+                        <SelectItem value="copy">Copy</SelectItem>
+                        <SelectItem value="pack">Pack</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
