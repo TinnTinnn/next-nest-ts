@@ -85,9 +85,25 @@ export class ProductsService {
     // Check if product exists
     await this.findOne(id)
 
-    return this.prisma.product.delete({
-      where: { id },
-    })
+    try {
+      // First, delete related stock-in records if they exist
+      await this.prisma.stockIn.deleteMany({
+        where: { productId: id },
+      })
+
+      // Then delete the product
+      return await this.prisma.product.delete({
+        where: { id },
+      })
+    } catch (error) {
+      console.error('Error in remove product:', error)
+      if (error.code === 'P2025') {
+        throw new NotFoundException(`Product with ID ${id} not found`)
+      } else if (error.code === 'P2003') {
+        throw new ConflictException('Cannot delete product because it is referenced by other records')
+      }
+      throw error
+    }
   }
 
   async findByCategory(category: string): Promise<Product[]> {

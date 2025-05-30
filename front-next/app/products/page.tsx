@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
@@ -19,6 +19,7 @@ import {
   ChevronRight,
   Download,
   Edit,
+  Eye,
   MoreHorizontal,
   PackagePlus,
   Search,
@@ -29,11 +30,11 @@ import { PageHeader } from "@/components/page-header"
 import { AddProductModal } from "@/components/products/add-product-modal"
 import { EditProductModal } from "@/components/products/edit-product-modal"
 import { AddStockModal } from "@/components/products/add-stock-modal"
+import { ProductDetailModal } from "@/components/products/product-detail-modal"
 import { toast } from "@/components/ui/use-toast"
-import { Toaster } from '@/components/ui/toaster';
-import ProtectedRoute from '@/components/ProtectedRoute';
-import { fetchWithAuth } from '@/lib/auth';
 
+import { fetchWithAuth } from "@/lib/auth"
+import { Toaster } from '@/components/ui/toaster';
 
 // Product data type
 interface Product {
@@ -52,7 +53,7 @@ interface Product {
 
 export default function ProductsPage() {
   // State for products data
-  const [products, setProducts] = useState<Product[]>([])
+  const [allProducts, setAllProducts] = useState<Product[]>([])
   // State for loading
   const [loading, setLoading] = useState(true)
   // State for add product modal
@@ -61,6 +62,8 @@ export default function ProductsPage() {
   const [showEditModal, setShowEditModal] = useState(false)
   // State for add stock modal
   const [showAddStockModal, setShowAddStockModal] = useState(false)
+  // State for product detail modal
+  const [showDetailModal, setShowDetailModal] = useState(false)
   // State for selected product
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   // State for search term
@@ -71,58 +74,30 @@ export default function ProductsPage() {
   const [statusFilter, setStatusFilter] = useState("all")
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [totalItems, setTotalItems] = useState(0)
   const itemsPerPage = 10
 
   // Function to fetch all products
   const fetchProducts = async () => {
     setLoading(true)
     try {
-      // Create URL with query parameters
-      let url = "/api/products"
-      const params = new URLSearchParams()
-
-      if (searchTerm) {
-        params.append("search", searchTerm)
-      }
-
-      if (categoryFilter !== "all") {
-        params.append("category", categoryFilter)
-      }
-
-      if (statusFilter !== "all") {
-        params.append("status", statusFilter)
-      }
-
-      // Add pagination parameters
-      params.append("page", currentPage.toString())
-      params.append("limit", itemsPerPage.toString())
-
-      if (params.toString()) {
-        url += `?${params.toString()}`
-      }
-
       // Call API
-      const response = await fetch(url)
+      const response = await fetch("/api/products")
 
       if (!response.ok) {
         throw new Error("Failed to fetch products")
       }
 
       const data = await response.json()
-
-      //
       const productsData = data.success ? data.products : data
-      setProducts(productsData)
 
+      // Add mock timestamps if not present
+      const productsWithTimestamps = productsData.map((product: any) => ({
+        ...product,
+        createdAt: product.createdAt || new Date().toISOString(),
+        updatedAt: product.updatedAt || new Date().toISOString(),
+      }))
 
-      // คำนวณจำนวนหน้าทั้งหมด
-      const total = productsData.length // ในระบบจริง ควรได้จาก API
-      setTotalItems(total)
-      setTotalPages(Math.ceil(total / itemsPerPage))
-
-
+      setAllProducts(productsWithTimestamps)
     } catch (error) {
       console.error("Error fetching products:", error)
       toast({
@@ -135,20 +110,69 @@ export default function ProductsPage() {
     }
   }
 
-
-
-  // Fetch products when component loads or filters change
+  // Fetch products when component loads
   useEffect(() => {
     fetchProducts()
-  }, [searchTerm, categoryFilter, statusFilter, currentPage])
+  }, [])
+
+  // Function to determine product status
+  const getProductStatus = (product: Product) => {
+    if (product.quantity <= 0) {
+      return { label: "Out of Stock", className: "bg-red-500/10 text-red-600 border-red-200", value: "out-of-stock" }
+    } else if (product.quantity < product.minStock) {
+      return { label: "Low Stock", className: "bg-yellow-500/10 text-yellow-600 border-yellow-200", value: "low-stock" }
+    } else {
+      return { label: "In Stock", className: "bg-green-500/10 text-green-600 border-green-200", value: "in-stock" }
+    }
+  }
+
+  // Filter and search products
+  const filteredProducts = useMemo(() => {
+    let filtered = allProducts
+
+    // Apply search filter
+    if (searchTerm) {
+      const searchLower = searchTerm.toLowerCase()
+      filtered = filtered.filter(
+        (product) =>
+          product.productId.toLowerCase().includes(searchLower) ||
+          product.name.toLowerCase().includes(searchLower) ||
+          product.category.toLowerCase().includes(searchLower),
+      )
+    }
+
+    // Apply category filter
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter((product) => product.category.toLowerCase() === categoryFilter.toLowerCase())
+    }
+
+    // Apply status filter
+    if (statusFilter !== "all") {
+      filtered = filtered.filter((product) => getProductStatus(product).value === statusFilter)
+    }
+
+    return filtered
+  }, [allProducts, searchTerm, categoryFilter, statusFilter])
+
+  // Calculate pagination
+  const totalItems = filteredProducts.length
+  const totalPages = Math.ceil(totalItems / itemsPerPage)
+  const startItem = (currentPage - 1) * itemsPerPage + 1
+  const endItem = Math.min(currentPage * itemsPerPage, totalItems)
+
+  // Get products for current page
+  const currentProducts = filteredProducts.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [searchTerm, categoryFilter, statusFilter])
 
   // Function to handle page change
   const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return
     setCurrentPage(page)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
-
 
   // Function to delete product
   const handleDeleteProduct = async (id: string) => {
@@ -169,7 +193,7 @@ export default function ProductsPage() {
       toast({
         title: "Product Deleted",
         description: "The product has been removed from the system",
-        variant: "success"
+        variant: "success",
       })
 
       // Refresh product list
@@ -206,20 +230,60 @@ export default function ProductsPage() {
     setShowAddStockModal(true)
   }
 
+  // Function to open detail modal
+  const handleViewDetail = (product: Product) => {
+    setSelectedProduct(product)
+    setShowDetailModal(true)
+  }
 
-  // Function to determine product status
-  const getProductStatus = (product: Product) => {
-    if (product.quantity <= 0) {
-      return { label: "Out of Stock", className: "bg-red-500/10 text-red-600 border-red-200" }
-    } else if (product.quantity <= product.minStock) {
-      return { label: "Low Stock", className: "bg-yellow-500/10 text-yellow-600 border-yellow-200" }
+  // Generate page numbers for pagination
+  const getPageNumbers = () => {
+    const pageNumbers = []
+    const maxPagesToShow = 5
+
+    if (totalPages <= maxPagesToShow) {
+      // Show all pages if total pages is less than or equal to maxPagesToShow
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i)
+      }
     } else {
-      return { label: "In Stock", className: "bg-green-500/10 text-green-600 border-green-200" }
+      // Always show first page
+      pageNumbers.push(1)
+
+      // Calculate start and end of middle pages
+      let startPage = Math.max(2, currentPage - 1)
+      let endPage = Math.min(totalPages - 1, currentPage + 1)
+
+      // Adjust if we're at the start or end
+      if (currentPage <= 2) {
+        endPage = 3
+      } else if (currentPage >= totalPages - 1) {
+        startPage = totalPages - 2
+      }
+
+      // Add ellipsis if needed
+      if (startPage > 2) {
+        pageNumbers.push("...")
+      }
+
+      // Add middle pages
+      for (let i = startPage; i <= endPage; i++) {
+        pageNumbers.push(i)
+      }
+
+      // Add ellipsis if needed
+      if (endPage < totalPages - 1) {
+        pageNumbers.push("...")
+      }
+
+      // Always show last page
+      pageNumbers.push(totalPages)
     }
+
+    return pageNumbers
   }
 
   return (
-    // <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Products"
@@ -257,7 +321,7 @@ export default function ProductsPage() {
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Select defaultValue="all" value={categoryFilter} onValueChange={setCategoryFilter}>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
                   <SelectTrigger className="w-[180px] border-primary/20">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
@@ -269,7 +333,7 @@ export default function ProductsPage() {
                     <SelectItem value="electrical">Electronics</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select defaultValue="all" value={statusFilter} onValueChange={setStatusFilter}>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[180px] border-primary/20">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
@@ -306,23 +370,25 @@ export default function ProductsPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : products.length === 0 ? (
+              ) : currentProducts.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8} className="text-center py-10">
-                    <p className="text-muted-foreground">No products found</p>
+                    <p className="text-muted-foreground">
+                      {filteredProducts.length === 0 && allProducts.length > 0
+                        ? "No products match your search criteria"
+                        : "No products found"}
+                    </p>
                   </TableCell>
                 </TableRow>
               ) : (
-                products
-                  .slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage)
-                  .map((product) => {
+                currentProducts.map((product) => {
                   const status = getProductStatus(product)
                   return (
                     <TableRow key={product.id} className="hover:bg-muted/50">
                       <TableCell className="font-medium">{product.productId}</TableCell>
                       <TableCell>{product.name}</TableCell>
-                      <TableCell>{product.category}</TableCell>
-                      <TableCell>{product.unit}</TableCell>
+                      <TableCell className="capitalize">{product.category}</TableCell>
+                      <TableCell className="capitalize">{product.unit}</TableCell>
                       <TableCell className="text-right">{product.quantity}</TableCell>
                       <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
                       <TableCell>
@@ -339,6 +405,10 @@ export default function ProductsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
                             <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleViewDetail(product)}>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditProduct(product)}>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
@@ -363,47 +433,52 @@ export default function ProductsPage() {
           </Table>
           <div className="flex items-center justify-between px-4 py-4 border-t">
             <div className="text-sm text-muted-foreground">
-              Showing {(currentPage - 1) * itemsPerPage + 1} to {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
+              {totalItems > 0 ? (
+                <>
+                  Showing {startItem} to {endItem} of {totalItems} items
+                  {(searchTerm || categoryFilter !== "all" || statusFilter !== "all") && (
+                    <span className="ml-1">(filtered from {allProducts.length} total)</span>
+                  )}
+                </>
+              ) : (
+                "No items to display"
+              )}
             </div>
             <div className="flex items-center space-x-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => handlePageChange(currentPage - 1)}
-                disabled={currentPage === 1}
+                disabled={currentPage === 1 || loading}
               >
                 <ChevronLeft className="h-4 w-4" />
                 <span className="sr-only">Previous</span>
               </Button>
-              
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                // แสดงหน้าปัจจุบันและหน้าที่อยู่ข้างเคียง
-                let pageNum = currentPage <= 3 
-                  ? i + 1 
-                  : currentPage >= totalPages - 2 
-                    ? totalPages - 4 + i 
-                    : currentPage - 2 + i;
-                
-                if (pageNum < 1 || pageNum > totalPages) return null;
-                
-                return (
-                  <Button 
-                    key={pageNum} 
-                    variant={currentPage === pageNum ? "default" : "outline"} 
-                    size="sm" 
-                    className="w-8"
-                    onClick={() => handlePageChange(pageNum)}
+
+              {getPageNumbers().map((page, index) =>
+                page === "..." ? (
+                  <span key={`ellipsis-${index}`} className="px-2">
+                    ...
+                  </span>
+                ) : (
+                  <Button
+                    key={`page-${page}`}
+                    variant="outline"
+                    size="sm"
+                    className={`w-8 ${currentPage === page ? "bg-primary text-primary-foreground" : ""}`}
+                    onClick={() => handlePageChange(page as number)}
+                    disabled={loading}
                   >
-                    {pageNum}
+                    {page}
                   </Button>
-                );
-              })}
-              
-              <Button 
-                variant="outline" 
-                size="sm" 
+                ),
+              )}
+
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => handlePageChange(currentPage + 1)}
-                disabled={currentPage >= totalPages}
+                disabled={currentPage === totalPages || totalPages === 0 || loading}
               >
                 <ChevronRight className="h-4 w-4" />
                 <span className="sr-only">Next</span>
@@ -433,9 +508,15 @@ export default function ProductsPage() {
         productName={selectedProduct?.name || ""}
       />
 
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        open={showDetailModal}
+        onOpenChange={setShowDetailModal}
+        productId={selectedProduct?.id || null}
+      />
+
       {/* Toaster for notifications */}
       <Toaster />
     </div>
-    // </ProtectedRoute>
   )
 }
