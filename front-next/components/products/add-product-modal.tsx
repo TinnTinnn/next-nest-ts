@@ -19,14 +19,19 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { toast } from "@/components/ui/use-toast"
-import { fetchWithAuth } from '@/lib/auth';
+import { fetchWithAuth } from '@/lib/auth'
+import { ProductCategory, ProductUnit, ProductCategoryOptions, ProductUnitOptions } from "@/lib/types/product"
 
 // Define the form schema with Zod
 const productFormSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
   name: z.string().min(2, "Product name must be at least 2 characters"),
-  category: z.string().min(1, "Category is required"),
-  unit: z.string().min(1, "Unit is required"),
+  category: z.nativeEnum(ProductCategory, {
+    required_error: "Please select a category",
+  }),
+  unit: z.nativeEnum(ProductUnit, {
+    required_error: "Please select a unit",
+  }),
   price: z.coerce.number().positive("Price must be a positive number"),
   minStock: z.coerce.number().int().nonnegative("Minimum stock must be a non-negative integer"),
   description: z.string().optional(),
@@ -39,8 +44,8 @@ type ProductFormValues = z.infer<typeof productFormSchema>
 const defaultValues: Partial<ProductFormValues> = {
   productId: "",
   name: "",
-  category: "",
-  unit: "",
+  category: undefined,
+  unit: undefined,
   price: 0,
   minStock: 10,
   description: "",
@@ -170,19 +175,18 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Category</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select category" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="machine">Machine</SelectItem>
-                        <SelectItem value="ingredient">Ingredient</SelectItem>
-                        <SelectItem value="flavoring">Flavoring</SelectItem>
-                        <SelectItem value="packaging">Packaging</SelectItem>
-                        <SelectItem value="utensil">Utensil</SelectItem>
-                        <SelectItem value="instruction">Instruction</SelectItem>
+                        {ProductCategoryOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -196,20 +200,18 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Unit</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select unit" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="unit">Unit</SelectItem>
-                        <SelectItem value="pcs">Piece</SelectItem>
-                        <SelectItem value="kg">Kg</SelectItem>
-                        <SelectItem value="bottle">Bottle</SelectItem>
-                        <SelectItem value="box">Box</SelectItem>
-                        <SelectItem value="copy">Copy</SelectItem>
-                        <SelectItem value="pack">Pack</SelectItem>
+                        {ProductUnitOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

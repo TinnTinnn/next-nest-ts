@@ -24,12 +24,31 @@ enum Role {
   STAFF
 }
 
+enum ProductCategory {
+  MACHINE
+  INGREDIENT
+  FLAVORING
+  PACKAGING
+  UTENSIL
+  INSTRUCTION
+}
+
+enum ProductUnit {
+  UNIT
+  PIECE
+  KILOGRAM
+  BOTTLE
+  BOX
+  COPY
+  PACK
+}
+
 model Product {
   id          String   @id @default(uuid())
   productId   String   @unique
   name        String
-  category    String
-  unit        String
+  category    ProductCategory
+  unit        ProductUnit
   price       Float
   minStock    Int      @default(10)
   quantity    Int      @default(0)

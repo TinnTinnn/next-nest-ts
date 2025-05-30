@@ -21,12 +21,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "@/components/ui/use-toast"
 import { fetchWithAuth } from "@/lib/auth"
 
+import { ProductCategory, ProductUnit, ProductCategoryOptions, ProductUnitOptions } from "@/lib/types/product"
+
 // Define the form schema with Zod
 const productFormSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
   name: z.string().min(2, "Product name must be at least 2 characters"),
-  category: z.string().min(1, "Category is required"),
-  unit: z.string().min(1, "Unit is required"),
+  category: z.nativeEnum(ProductCategory, {
+    required_error: "Please select a category",
+  }),
+  unit: z.nativeEnum(ProductUnit, {
+    required_error: "Please select a unit",
+  }),
   price: z.coerce.number().positive("Price must be a positive number"),
   minStock: z.coerce.number().int().nonnegative("Minimum stock must be a non-negative integer"),
   description: z.string().optional(),
@@ -50,8 +56,8 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
     defaultValues: {
       productId: "",
       name: "",
-      category: "",
-      unit: "",
+      category: undefined,
+      unit: undefined,
       price: 0,
       minStock: 10,
       description: "",
@@ -99,7 +105,7 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
     }
   }, [open, productId, form, onOpenChange])
 
-  async function onSubmit(data: ProductFormValues) {
+  const onSubmit = async (formData: ProductFormValues) => {
     if (!productId) return
 
     setIsSubmitting(true)
@@ -110,7 +116,11 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...formData,
+          category: formData.category,
+          unit: formData.unit,
+        }),
       })
 
       if (!response.ok) {
@@ -120,7 +130,7 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
 
       toast({
         title: "Product Updated Successfully",
-        description: `${data.name} has been updated`,
+        description: `${formData.name} has been updated`,
         variant: "success"
       })
 
@@ -204,18 +214,19 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
                   name="category"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Category</FormLabel>
+                      <FormLabel>หมวดหมู่</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select category" />
+                            <SelectValue placeholder="เลือกหมวดหมู่" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="stationery">Stationery</SelectItem>
-                          <SelectItem value="it">IT Equipment</SelectItem>
-                          <SelectItem value="office">Office Supplies</SelectItem>
-                          <SelectItem value="electrical">Electronics</SelectItem>
+                          {ProductCategoryOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -228,21 +239,19 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
                   name="unit"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Unit</FormLabel>
+                      <FormLabel>หน่วยนับ</FormLabel>
                       <Select onValueChange={field.onChange} value={field.value}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder="Select unit" />
+                            <SelectValue placeholder="เลือกหน่วยนับ" />
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="piece">Piece</SelectItem>
-                          <SelectItem value="box">Box</SelectItem>
-                          <SelectItem value="pack">Pack</SelectItem>
-                          <SelectItem value="ream">Ream</SelectItem>
-                          <SelectItem value="unit">Unit</SelectItem>
-                          <SelectItem value="set">Set</SelectItem>
-                          <SelectItem value="cartridge">Cartridge</SelectItem>
+                          {ProductUnitOptions.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />
