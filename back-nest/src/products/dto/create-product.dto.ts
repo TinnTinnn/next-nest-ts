@@ -1,27 +1,30 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Min, IsEnum  } from 'class-validator';
 import { ApiProperty } from "@nestjs/swagger"
+import { ProductCategory, ProductUnit } from "@prisma/client"
+
+
 
 export class CreateProductDto {
   @ApiProperty({ description: "Unique product indentifier",
-  example: "P001" })
+  example: "MACH-001" })
   @IsString()
   @IsNotEmpty()
   productId: string;
 
-  @ApiProperty({ description: "Product name", example: "A4 Paper Double A" })
+  @ApiProperty({ description: "Product name", example: "Fresh Milk" })
   @IsString()
   @IsNotEmpty()
   name: string
 
-  @ApiProperty({ description: "Product category", example: "Stationery" })
-  @IsString()
+  @ApiProperty({ description: "Product category", example: "Favoring" })
+  @IsEnum(ProductCategory)
   @IsNotEmpty()
-  category: string
+  category: ProductCategory
 
-  @ApiProperty({ description: "Unit of measurement", example: "Ream" })
-  @IsString()
+  @ApiProperty({ description: "Unit of measurement", example: "Piece" })
+  @IsEnum(ProductUnit)
   @IsNotEmpty()
-  unit: string
+  unit: ProductUnit
 
   @ApiProperty({ description: "Unit price", example: 12.0 })
   @IsNumber()
@@ -38,7 +41,7 @@ export class CreateProductDto {
   @Min(0)
   initialStock: number
 
-  @ApiProperty({ description: "Product description", example: "High quality A4 paper for printing", required: false })
+  @ApiProperty({ description: "Product description", example: "Professional gelato batch freezer imported from Italy.", required: false })
   @IsString()
   @IsOptional()
   description?: string

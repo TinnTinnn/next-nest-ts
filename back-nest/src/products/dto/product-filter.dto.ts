@@ -1,5 +1,6 @@
 import { IsOptional, IsString, IsEnum } from "class-validator"
 import { ApiPropertyOptional } from "@nestjs/swagger"
+import { ProductCategory } from "@prisma/client";
 
 export enum StockStatus {
   ALL = "all",
@@ -9,12 +10,12 @@ export enum StockStatus {
 }
 
 export class ProductFilterDto {
-  @ApiPropertyOptional({ description: "Filter by category", example: "Stationery" })
+  @ApiPropertyOptional({ description: "Filter by category", example: "Machine" })
   @IsOptional()
-  @IsString()
-  category?: string
+  @IsEnum(ProductCategory)
+  category?: ProductCategory
 
-  @ApiPropertyOptional({ description: "Search term", example: "paper" })
+  @ApiPropertyOptional({ description: "Search term", example: "Gelato" })
   @IsOptional()
   @IsString()
   search?: string

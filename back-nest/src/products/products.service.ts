@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from "@nestjs/common
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateProductDto } from "./dto/create-product.dto"
 import { UpdateProductDto } from "./dto/update-product.dto"
-import { Product } from "@prisma/client"
+import { Product, ProductCategory, ProductUnit } from "@prisma/client";
 
 @Injectable()
 export class ProductsService {
@@ -21,12 +21,16 @@ export class ProductsService {
     // Extract initialStock from DTO and remove it before creating the product
     const { initialStock, ...productData } = createProductDto
 
-    // Create the product with initial quantity
+    // Ensure enums are properly cast
+    const data = {
+      ...productData,
+      category: productData.category as ProductCategory,
+      unit: productData.unit as ProductUnit,
+      quantity: initialStock || 0,
+    }
+
     return this.prisma.product.create({
-      data: {
-        ...productData,
-        quantity: initialStock || 0,
-      },
+      data,
     })
   }
 
@@ -106,7 +110,7 @@ export class ProductsService {
     }
   }
 
-  async findByCategory(category: string): Promise<Product[]> {
+  async findByCategory(category: ProductCategory): Promise<Product[]> {
     return this.prisma.product.findMany({
       where: { category },
       orderBy: { name: "asc" },

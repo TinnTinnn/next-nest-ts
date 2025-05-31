@@ -1,8 +1,25 @@
 -- CreateEnum
+CREATE TYPE "Role" AS ENUM ('ADMIN', 'STAFF');
+
+-- CreateEnum
 CREATE TYPE "ProductCategory" AS ENUM ('Machine', 'Ingredient', 'Flavoring', 'Packaging', 'Utensil', 'Instruction');
 
 -- CreateEnum
 CREATE TYPE "ProductUnit" AS ENUM ('Unit', 'Piece', 'Kilogram', 'Bottle', 'Box', 'Copy', 'Pack');
+
+-- CreateTable
+CREATE TABLE "User" (
+    "id" SERIAL NOT NULL,
+    "email" TEXT NOT NULL,
+    "password" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "refreshToken" TEXT,
+    "role" "Role" NOT NULL DEFAULT 'STAFF',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
 
 -- CreateTable
 CREATE TABLE "Product" (
@@ -53,6 +70,9 @@ CREATE TABLE "StockOut" (
 
     CONSTRAINT "StockOut_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_productId_key" ON "Product"("productId");

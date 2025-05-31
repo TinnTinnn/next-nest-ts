@@ -20,6 +20,7 @@ import  { UpdateProductDto } from "./dto/update-product.dto"
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from "@nestjs/swagger"
 import { ProductResponseDto } from "./dto/product-response.dto";
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { ProductCategory } from "@prisma/client";
 
 @ApiTags("products")
 @Controller("products")
@@ -60,7 +61,7 @@ export class ProductsController {
     }
 
     if (category) {
-      return this.productsService.findByCategory(category)
+      return this.productsService.findByCategory(category as ProductCategory)
     }
 
     if (status) {

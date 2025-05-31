@@ -227,11 +227,12 @@ const config = {
     "db"
   ],
   "activeProvider": "postgresql",
+  "postinstall": false,
   "inlineDatasources": {
     "db": {
       "url": {
         "fromEnvVar": "DATABASE_URL",
-        "value": "postgresql://tinntinn:Fr33domlife@localhost:5432/inventory-pro?schema=public"
+        "value": null
       }
     }
   },
