@@ -160,7 +160,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
                   <FormItem>
                     <FormLabel>Product Name</FormLabel>
                     <FormControl>
-                      <Input placeholder="A4 Paper Double A" {...field} />
+                      <Input placeholder="Frigomat GX2" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

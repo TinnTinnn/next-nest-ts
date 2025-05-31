@@ -76,7 +76,7 @@ export function ProductDetailModal({ open, onOpenChange, productId }: ProductDet
   const getProductStatus = (product: Product) => {
     if (product.quantity <= 0) {
       return { label: "Out of Stock", className: "bg-red-500/10 text-red-600 border-red-200", icon: AlertTriangle }
-    } else if (product.quantity <= product.minStock) {
+    } else if (product.quantity < product.minStock) {
       return {
         label: "Low Stock",
         className: "bg-yellow-500/10 text-yellow-600 border-yellow-200",
@@ -192,7 +192,7 @@ export function ProductDetailModal({ open, onOpenChange, productId }: ProductDet
                     className={`h-2 rounded-full ${
                       product.quantity <= 0
                         ? "bg-red-500"
-                        : product.quantity <= product.minStock
+                        : product.quantity < product.minStock
                           ? "bg-yellow-500"
                           : "bg-green-500"
                     }`}
