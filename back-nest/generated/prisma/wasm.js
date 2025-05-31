@@ -191,6 +191,25 @@ exports.Role = exports.$Enums.Role = {
   STAFF: 'STAFF'
 };
 
+exports.ProductCategory = exports.$Enums.ProductCategory = {
+  Machine: 'Machine',
+  Ingredient: 'Ingredient',
+  Flavoring: 'Flavoring',
+  Packaging: 'Packaging',
+  Utensil: 'Utensil',
+  Instruction: 'Instruction'
+};
+
+exports.ProductUnit = exports.$Enums.ProductUnit = {
+  Unit: 'Unit',
+  Piece: 'Piece',
+  Kilogram: 'Kilogram',
+  Bottle: 'Bottle',
+  Box: 'Box',
+  Copy: 'Copy',
+  Pack: 'Pack'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Product: 'Product',
