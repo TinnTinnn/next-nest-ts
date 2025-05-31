@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { ProductCategory, ProductCategoryLabels } from "@/lib/types/product"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -69,7 +70,7 @@ export default function ProductsPage() {
   // State for search term
   const [searchTerm, setSearchTerm] = useState("")
   // State for category filter
-  const [categoryFilter, setCategoryFilter] = useState("all")
+  const [categoryFilter, setCategoryFilter] = useState<string | ProductCategory>("all")
   // State for status filter
   const [statusFilter, setStatusFilter] = useState("all")
   // State for pagination
@@ -143,7 +144,9 @@ export default function ProductsPage() {
 
     // Apply category filter
     if (categoryFilter !== "all") {
-      filtered = filtered.filter((product) => product.category.toLowerCase() === categoryFilter.toLowerCase())
+      filtered = filtered.filter((product) => 
+        product.category.toLowerCase() === String(categoryFilter).toLowerCase()
+      )
     }
 
     // Apply status filter
@@ -327,10 +330,11 @@ export default function ProductsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="stationery">Stationery</SelectItem>
-                    <SelectItem value="it">IT Equipment</SelectItem>
-                    <SelectItem value="office">Office Supplies</SelectItem>
-                    <SelectItem value="electrical">Electronics</SelectItem>
+                    {Object.entries(ProductCategory).map(([key, value]) => (
+                      <SelectItem key={value} value={value}>
+                        {ProductCategoryLabels[value as ProductCategory] || key}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
