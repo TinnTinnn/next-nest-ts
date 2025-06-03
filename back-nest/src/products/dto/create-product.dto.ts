@@ -1,6 +1,7 @@
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Min, IsEnum  } from 'class-validator';
 import { ApiProperty } from "@nestjs/swagger"
-import { ProductCategory, ProductUnit } from "@prisma/client"
+import { ProductCategory, ProductUnit } from "@prisma/client";
+
 
 
 

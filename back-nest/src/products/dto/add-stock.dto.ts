@@ -1,5 +1,6 @@
-import { IsInt, IsPositive, IsOptional, IsString, Min } from "class-validator";
+import { IsInt, IsPositive, IsOptional, IsString, Min, IsEnum } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { Supplier } from "@prisma/client";
 
 export class AddStockDto {
   @ApiProperty({ description: "Quantity to add", example: 10 })
@@ -12,10 +13,15 @@ export class AddStockDto {
   @IsOptional()
   notes?: string;
 
-  @ApiProperty({ description: "Supplier name", example: "Default Supplier", required: false })
-  @IsString()
+  @ApiProperty({ 
+    description: "Supplier",
+    enum: Supplier,
+    example: Supplier.CARPIGIANI,
+    required: false 
+  })
+  @IsEnum(Supplier)
   @IsOptional()
-  supplier: string = "Default Supplier";
+  supplier: Supplier = Supplier.CARPIGIANI;
 
   @ApiProperty({ description: "Unit price", example: 0, required: false })
   @Min(0)

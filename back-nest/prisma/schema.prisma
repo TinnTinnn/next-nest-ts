@@ -8,6 +8,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Supplier {
+  CARPIGIANI
+  TAYLOR
+  BRAVO
+  NISSEI
+  ELECTROLUX
+  GRAM
+  TECNICHE
+  ITALGEL
+  PREGEL
+  // FABBRI
+  // CAMELLO
+  // BABBARO
+  // GELCO
+  // GELMATER
+  // ITALIANA
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   email        String   @unique
@@ -65,7 +83,7 @@ model StockIn {
   id        String   @id @default(uuid())
   reference String   @unique
   date      DateTime
-  supplier  String
+  supplier  Supplier
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

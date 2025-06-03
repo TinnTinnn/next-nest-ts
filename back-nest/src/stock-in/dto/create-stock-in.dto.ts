@@ -1,5 +1,7 @@
-import { IsString, IsNumber, IsOptional, Min, IsNotEmpty, IsDateString } from "class-validator"
+import { IsString, IsNumber, IsOptional, Min, IsNotEmpty, IsDateString, IsEnum } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger"
+import { Supplier } from "@prisma/client";
+
 
 export class CreateStockInDto {
   @ApiProperty({ description: "Reference number", example: "IN-20240515-001" })
@@ -11,10 +13,14 @@ export class CreateStockInDto {
   @IsDateString()
   date: string
 
-  @ApiProperty({ description: "Supplier name", example: "ABC Company Ltd." })
-  @IsString()
+  @ApiProperty({
+    description: "Supplier",
+    enum: Supplier,
+    example: "CARPIGIANI"
+  })
+  @IsEnum(Supplier)
   @IsNotEmpty()
-  supplier: string
+  supplier: Supplier
 
   @ApiProperty({ description: "Product ID", example: "product-uuid" })
   @IsString()
