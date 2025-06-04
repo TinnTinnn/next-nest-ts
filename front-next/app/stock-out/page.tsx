@@ -232,6 +232,7 @@ export default function StockOutPage() {
       toast({
         title: "Stock Out Saved Successfully",
         description: `${selectedProducts.length} products have been removed from inventory for ${department}`,
+        variant: "success",
       })
       // Reset form
       setSelectedProducts([])
