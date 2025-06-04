@@ -18,12 +18,16 @@ enum Supplier {
   TECNICHE
   ITALGEL
   PREGEL
-  // FABBRI
-  // CAMELLO
-  // BABBARO
-  // GELCO
-  // GELMATER
-  // ITALIANA
+}
+
+enum Department {
+  Production
+  Marketing
+  Maintenance
+  QualityControl
+  Logistics
+  Accounting
+  HumanResources
 }
 
 model User {
@@ -96,14 +100,14 @@ model StockIn {
 }
 
 model StockOut {
-  id         String   @id @default(uuid())
-  reference  String   @unique
+  id         String     @id @default(uuid())
+  reference  String     @unique
   date       DateTime
-  department String
+  department Department
   requester  String
   notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
 
   // Relations
   product   Product @relation(fields: [productId], references: [id])

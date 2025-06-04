@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode, UseGuards } from "@nestjs/common";
-import  { StockOutService } from "./stock-out.service"
-import  { CreateStockOutDto } from "./dto/create-stock-out.dto"
+import { StockOutService } from "./stock-out.service"
+import { CreateStockOutDto } from "./dto/create-stock-out.dto"
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from "@nestjs/swagger"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
@@ -13,9 +13,8 @@ export class StockOutController {
   @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new stock out record' })
   @ApiResponse({ status: 201, description: 'The stock out record has been successfully created.' })
-  @ApiResponse({ status: 400, description: 'Bad Request or Not enough stock.' })
+  @ApiResponse({ status: 400, description: 'Bad Request.' })
   @ApiResponse({ status: 409, description: 'Stock out with this reference already exists.' })
-  @Post()
   create(@Body() createStockOutDto: CreateStockOutDto) {
     return this.stockOutService.create(createStockOutDto);
   }
@@ -37,6 +36,7 @@ export class StockOutController {
   }
 
   @Get('by-reference/:reference')
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Get a stock out record by reference' })
   @ApiResponse({ status: 200, description: 'Return the stock out record.' })
   @ApiResponse({ status: 404, description: 'Stock out record not found.' })
@@ -46,7 +46,6 @@ export class StockOutController {
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a stock out record' })
   @ApiResponse({ status: 204, description: 'The stock out record has been successfully deleted.' })

@@ -20,13 +20,12 @@ export class StockOutService {
       throw new ConflictException(`Stock out with reference ${createStockOutDto.reference} already exists`)
     }
 
-    // Check if product exists
+    // Check if product exists and has sufficient stock
     const product = await this.productsService.findOne(createStockOutDto.productId)
 
-    // Check if there's enough stock
     if (product.quantity < createStockOutDto.quantity) {
       throw new BadRequestException(
-        `Not enough stock. Available: ${product.quantity}, Requested: ${createStockOutDto.quantity}`,
+        `Insufficient stock. Available: ${product.quantity}, Requested: ${createStockOutDto.quantity}`
       )
     }
 
@@ -103,14 +102,14 @@ export class StockOutService {
     // Check if stock out exists
     const stockOut = await this.findOne(id)
 
-    // Delete stock out record and update product quantity in a transaction
+    // Delete stock out record and restore product quantity in a transaction
     return this.prisma.$transaction(async (prisma) => {
       // Delete stock out record
       await prisma.stockOut.delete({
         where: { id },
       })
 
-      // Update product quantity
+      // Restore product quantity
       await prisma.product.update({
         where: { id: stockOut.productId },
         data: {

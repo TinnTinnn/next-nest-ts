@@ -1,5 +1,6 @@
-import { IsString, IsNumber, IsOptional, Min, IsNotEmpty, IsDateString } from "class-validator"
+import { IsString, IsNumber, IsOptional, Min, IsNotEmpty, IsDateString, IsEnum } from "class-validator"
 import { ApiProperty } from "@nestjs/swagger"
+import { Department } from "@prisma/client"
 
 export class CreateStockOutDto {
   @ApiProperty({ description: "Reference number", example: "OUT-20240515-001" })
@@ -11,12 +12,16 @@ export class CreateStockOutDto {
   @IsDateString()
   date: string
 
-  @ApiProperty({ description: "Department", example: "Accounting" })
-  @IsString()
+  @ApiProperty({
+    description: "Department",
+    enum: Department,
+    example: "Production"
+  })
+  @IsEnum(Department)
   @IsNotEmpty()
-  department: string
+  department: Department
 
-  @ApiProperty({ description: "Requester", example: "John Doe" })
+  @ApiProperty({ description: "Requester name", example: "John Doe" })
   @IsString()
   @IsNotEmpty()
   requester: string
@@ -36,7 +41,7 @@ export class CreateStockOutDto {
   @Min(0)
   unitPrice: number
 
-  @ApiProperty({ description: "Additional notes", example: "Monthly department supply", required: false })
+  @ApiProperty({ description: "Additional notes", example: "For production line A", required: false })
   @IsString()
   @IsOptional()
   notes?: string
