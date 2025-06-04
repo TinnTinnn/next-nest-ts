@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode } from "@nestjs/common"
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode, UseGuards } from "@nestjs/common";
 import  { StockInService } from "./stock-in.service"
 import  { CreateStockInDto } from "./dto/create-stock-in.dto"
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from "@nestjs/swagger"
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @ApiTags("stock-in")
 @Controller("stock-in")
@@ -9,6 +10,7 @@ export class StockInController {
   constructor(private readonly stockInService: StockInService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new stock in record' })
   @ApiResponse({ status: 201, description: 'The stock in record has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -43,6 +45,7 @@ export class StockInController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a stock in record' })
   @ApiResponse({ status: 204, description: 'The stock in record has been successfully deleted.' })
