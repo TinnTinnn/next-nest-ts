@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode } from "@nestjs/common"
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode, UseGuards } from "@nestjs/common";
 import  { StockOutService } from "./stock-out.service"
 import  { CreateStockOutDto } from "./dto/create-stock-out.dto"
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from "@nestjs/swagger"
+import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @ApiTags("stock-out")
 @Controller("stock-out")
@@ -9,6 +10,7 @@ export class StockOutController {
   constructor(private readonly stockOutService: StockOutService) {}
 
   @Post()
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Create a new stock out record' })
   @ApiResponse({ status: 201, description: 'The stock out record has been successfully created.' })
   @ApiResponse({ status: 400, description: 'Bad Request or Not enough stock.' })
@@ -44,6 +46,7 @@ export class StockOutController {
   }
 
   @Delete(':id')
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete a stock out record' })
   @ApiResponse({ status: 204, description: 'The stock out record has been successfully deleted.' })
