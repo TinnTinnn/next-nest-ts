@@ -26,6 +26,14 @@ export class StockOutController {
     return this.stockOutService.findAll()
   }
 
+  @Get('product/:productId')
+  @ApiOperation({ summary: 'Get stock out records by productId' })
+  @ApiResponse({ status: 200, description: 'Return stock out records for a product.' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  findByProductId(@Param('productId') productId: string) {
+    return this.stockOutService.findByProductId(productId);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a stock out record by ID' })
   @ApiResponse({ status: 200, description: 'Return the stock out record.' })
