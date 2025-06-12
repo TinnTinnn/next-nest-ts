@@ -26,14 +26,6 @@ export class StockInController {
     return this.stockInService.findAll()
   }
 
-  @Get('product/:productId')
-  @ApiOperation({ summary: 'Get stock in records by productId' })
-  @ApiResponse({ status: 200, description: 'Return stock in records for a product.' })
-  @ApiParam({ name: 'productId', description: 'Product ID' })
-  findByProductId(@Param('productId') productId: string) {
-    return this.stockInService.findByProductId(productId);
-  }
-
   @Get(':id')
   @ApiOperation({ summary: 'Get a stock in record by ID' })
   @ApiResponse({ status: 200, description: 'Return the stock in record.' })

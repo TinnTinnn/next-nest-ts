@@ -61,15 +61,6 @@ export class StockInService {
     })
   }
 
-  async findByProductId(productId: string) {
-    return this.prisma.stockIn.findMany({
-      where: { productId },
-      include: { product: true },
-      orderBy: { date: "desc" },
-    });
-  }
-  }
-
   async findOne(id: string) {
     const stockIn = await this.prisma.stockIn.findUnique({
       where: { id },
