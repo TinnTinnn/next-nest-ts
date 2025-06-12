@@ -3,12 +3,66 @@ import { PrismaService } from "../prisma/prisma.service"
 import { CreateStockOutDto } from "./dto/create-stock-out.dto"
 import { ProductsService } from "../products/products.service"
 
+interface FindOptions {
+  page: number;
+  limit: number;
+  startDate?: Date;
+  endDate?: Date;
+  department?: string;
+}
+
 @Injectable()
 export class StockOutService {
   constructor(
     private prisma: PrismaService,
     private productsService: ProductsService,
   ) {}
+
+  async findByProduct(productId: string, options: FindOptions) {
+    const { page, limit, startDate, endDate } = options;
+    const skip = (page - 1) * limit;
+
+    const where: any = {
+      productId: productId,
+    };
+
+    if (startDate || endDate) {
+      where.date = {};
+      if (startDate) where.date.gte = startDate;
+      if (endDate) where.date.lte = endDate;
+    }
+
+    const [stockOuts, total] = await Promise.all([
+      this.prisma.stockOut.findMany({
+        where,
+        include: {
+          product: {
+            select: {
+              productId: true,
+              name: true,
+              unit: true,
+            },
+          },
+        },
+        orderBy: {
+          date: 'desc',
+        },
+        skip,
+        take: limit,
+      }),
+      this.prisma.stockOut.count({ where }),
+    ]);
+
+    return {
+      data: stockOuts,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
 
   async create(createStockOutDto: CreateStockOutDto) {
     // Check if reference already exists

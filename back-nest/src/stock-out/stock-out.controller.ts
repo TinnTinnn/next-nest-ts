@@ -1,13 +1,14 @@
-import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode, UseGuards, Query } from "@nestjs/common";
 import { StockOutService } from "./stock-out.service"
 import { CreateStockOutDto } from "./dto/create-stock-out.dto"
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from "@nestjs/swagger"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @ApiTags("stock-out")
-@Controller("stock-out")
+@Controller("api/stock-out")
 export class StockOutController {
   constructor(private readonly stockOutService: StockOutService) {}
+
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -26,13 +27,38 @@ export class StockOutController {
     return this.stockOutService.findAll()
   }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get a stock out record by ID' })
-  @ApiResponse({ status: 200, description: 'Return the stock out record.' })
-  @ApiResponse({ status: 404, description: 'Stock out record not found.' })
-  @ApiParam({ name: 'id', description: 'Stock out ID' })
-  findOne(@Param('id') id: string) {
-    return this.stockOutService.findOne(id);
+  @Get('product/:productId')
+  @ApiOperation({ summary: 'Get stock out records by product ID' })
+  @ApiResponse({ status: 200, description: 'Return stock out records for the product.' })
+  @ApiParam({ name: 'productId', description: 'Product ID' })
+  async getStockOutByProduct(
+    @Param('productId') productId: string,
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+  ) {
+    try {
+      const result = await this.stockOutService.findByProduct(productId, {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+      });
+
+      // ✅ Return consistent format
+      return {
+        success: true,
+        message: 'Stock out records retrieved successfully',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to fetch stock out records',
+        data: [],
+      };
+    }
   }
 
   @Get('by-reference/:reference')
@@ -44,6 +70,16 @@ export class StockOutController {
   findByReference(@Param('reference') reference: string) {
     return this.stockOutService.findByReference(reference);
   }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a stock out record by ID' })
+  @ApiResponse({ status: 200, description: 'Return the stock out record.' })
+  @ApiResponse({ status: 404, description: 'Stock out record not found.' })
+  @ApiParam({ name: 'id', description: 'Stock out ID' })
+  findOne(@Param('id') id: string) {
+    return this.stockOutService.findOne(id);
+  }
+
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

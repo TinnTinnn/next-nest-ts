@@ -63,40 +63,11 @@ export function ProductHistoryModal({ open, onOpenChange, productId, productName
       console.error("Error fetching history:", error)
       toast({
         title: "Error",
-        description: "Failed to fetch product history",
+        description: "Failed to fetch product history. Please check your backend connection.",
         variant: "destructive",
       })
-      // Set mock data for demo
-      setHistory([
-        {
-          id: "1",
-          reference: "IN-20250604-001",
-          date: "2025-06-04T10:00:00.000Z",
-          quantity: 50,
-          type: "stock-in",
-          supplier: "Carpigiani Group S.p.A.",
-          notes: "Monthly restock",
-        },
-        {
-          id: "2",
-          reference: "OUT-20250603-001",
-          date: "2025-06-03T14:30:00.000Z",
-          quantity: 10,
-          type: "stock-out",
-          department: "Production",
-          requester: "John Smith",
-          notes: "Production line requirement",
-        },
-        {
-          id: "3",
-          reference: "IN-20250601-001",
-          date: "2025-06-01T09:15:00.000Z",
-          quantity: 25,
-          type: "stock-in",
-          supplier: "Taylor Company",
-          notes: "Emergency restock",
-        },
-      ])
+      // Clear history on error instead of showing mock data
+      setHistory([])
     } finally {
       setIsLoading(false)
     }
@@ -227,6 +198,9 @@ export function ProductHistoryModal({ open, onOpenChange, productId, productName
                   <TableRow>
                     <TableCell colSpan={6} className="text-center py-8">
                       <p className="text-muted-foreground">No movement history found</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        This product has no stock in/out transactions yet
+                      </p>
                     </TableCell>
                   </TableRow>
                 ) : (
