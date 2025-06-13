@@ -43,12 +43,19 @@ export async function GET(request: Request, { params }: { params: { id: string }
     let stockInData = []
     let stockOutData = []
 
-    // ✅ Handle responses properly
+    // ✅ Handle responses properly with nested data structure
     if (stockInResponse.ok) {
       const stockInResult = await stockInResponse.json()
       console.log('Stock In Response:', stockInResult)
-      // Handle both formats: direct array or { success, data } format
-      stockInData = stockInResult.data ? stockInResult.data : (Array.isArray(stockInResult) ? stockInResult : [])
+
+      // Handle nested data structure: { success: true, data: { data: [...], pagination: {...} } }
+      if (stockInResult.success && stockInResult.data && stockInResult.data.data) {
+        stockInData = Array.isArray(stockInResult.data.data) ? stockInResult.data.data : []
+      } else if (stockInResult.data && Array.isArray(stockInResult.data)) {
+        stockInData = stockInResult.data
+      } else if (Array.isArray(stockInResult)) {
+        stockInData = stockInResult
+      }
     } else {
       console.error('Stock In Response Error:', stockInResponse.status, stockInResponse.statusText)
     }
@@ -56,8 +63,15 @@ export async function GET(request: Request, { params }: { params: { id: string }
     if (stockOutResponse.ok) {
       const stockOutResult = await stockOutResponse.json()
       console.log('Stock Out Response:', stockOutResult)
-      // Handle both formats: direct array or { success, data } format
-      stockOutData = stockOutResult.data ? stockOutResult.data : (Array.isArray(stockOutResult) ? stockOutResult : [])
+
+      // Handle nested data structure: { success: true, data: { data: [...], pagination: {...} } }
+      if (stockOutResult.success && stockOutResult.data && stockOutResult.data.data) {
+        stockOutData = Array.isArray(stockOutResult.data.data) ? stockOutResult.data.data : []
+      } else if (stockOutResult.data && Array.isArray(stockOutResult.data)) {
+        stockOutData = stockOutResult.data
+      } else if (Array.isArray(stockOutResult)) {
+        stockOutData = stockOutResult
+      }
     } else {
       console.error('Stock Out Response Error:', stockOutResponse.status, stockOutResponse.statusText)
     }

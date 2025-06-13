@@ -5,7 +5,7 @@ import { ApiTags, ApiOperation, ApiResponse, ApiParam } from "@nestjs/swagger"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @ApiTags("stock-out")
-@Controller("api/stock-out")
+@Controller("stock-out")
 export class StockOutController {
   constructor(private readonly stockOutService: StockOutService) {}
 
