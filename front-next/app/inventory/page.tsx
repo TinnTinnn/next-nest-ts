@@ -12,8 +12,7 @@ import { QRScannerModal } from "@/components/inventory/qr-scanner-modal"
 import { ProductHistoryModal } from "@/components/inventory/product-history-modal"
 import { toast } from "@/components/ui/use-toast"
 import { Toaster } from "@/components/ui/toaster"
-
-
+import { type ProductCategory, ProductCategoryOptions } from "@/lib/types/product"
 
 // Product interface
 interface Product {
@@ -37,8 +36,8 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true)
   // State for search term
   const [searchTerm, setSearchTerm] = useState("")
-  // State for category filter
-  const [categoryFilter, setCategoryFilter] = useState("all")
+  // Edit categoryFilter state to handle ProductCategory
+  const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all")
   // State for status filter
   const [statusFilter, setStatusFilter] = useState("all")
   // State for pagination
@@ -113,9 +112,10 @@ export default function InventoryPage() {
       )
     }
 
+    // แก้ไขส่วนของการ filter products ตาม category
     // Apply category filter
     if (categoryFilter !== "all") {
-      filtered = filtered.filter((product) => product.category.toLowerCase() === categoryFilter.toLowerCase())
+      filtered = filtered.filter((product) => product.category === categoryFilter)
     }
 
     // Apply status filter
@@ -342,16 +342,21 @@ export default function InventoryPage() {
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                {/* แก้ไข Select component สำหรับ category filter */}
+                <Select
+                  value={categoryFilter}
+                  onValueChange={(value) => setCategoryFilter(value as ProductCategory | "all")}
+                >
                   <SelectTrigger className="w-[180px] border-primary/20">
                     <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
-                    <SelectItem value="stationery">Stationery</SelectItem>
-                    <SelectItem value="it">IT Equipment</SelectItem>
-                    <SelectItem value="office">Office Supplies</SelectItem>
-                    <SelectItem value="electrical">Electronics</SelectItem>
+                    {ProductCategoryOptions.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
