@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server"
 
-// GET /api/dashboard/activities - Get recent activities
+// GET /api/dashboard/activities - Get recent activities with pagination
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
     const limit = searchParams.get("limit") || "5"
+    const offset = searchParams.get("offset") || "0"
+    const page = searchParams.get("page") || "1"
 
     // Call backend API for recent stock in
-    const stockInResponse = await fetch(`http://localhost:3001/api/stock-in/recent?limit=${limit}`, {
+    const stockInResponse = await fetch(`http://localhost:3001/api/stock-in/recent?limit=${limit}&offset=${offset}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -15,7 +17,7 @@ export async function GET(request: Request) {
     })
 
     // Call backend API for recent stock out
-    const stockOutResponse = await fetch(`http://localhost:3001/api/stock-out/recent?limit=${limit}`, {
+    const stockOutResponse = await fetch(`http://localhost:3001/api/stock-out/recent?limit=${limit}&offset=${offset}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -50,15 +52,37 @@ export async function GET(request: Request) {
         user: item.requester || "Unknown User",
         destination: item.department || "Unknown Department",
       })),
-    ]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-      .slice(0, Number.parseInt(limit))
+    ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+    // For pagination, we need to slice the combined results
+    const limitNum = Number.parseInt(limit)
+    const offsetNum = Number.parseInt(offset)
+    const pageNum = Number.parseInt(page)
+
+    const totalItems = activities.length
+    const totalPages = Math.ceil(totalItems / limitNum)
+
+    // Slice activities for current page
+    const paginatedActivities = activities.slice(offsetNum, offsetNum + limitNum)
+
+    // Return with pagination info if requested
+    const response = {
+      activities: paginatedActivities,
+      pagination: {
+        currentPage: pageNum,
+        totalPages,
+        totalItems,
+        itemsPerPage: limitNum,
+        hasNextPage: pageNum < totalPages,
+        hasPreviousPage: pageNum > 1,
+      },
+    }
 
     return NextResponse.json(
       {
         success: true,
         message: "Recent activities retrieved successfully",
-        data: activities,
+        data: response,
       },
       { status: 200 },
     )

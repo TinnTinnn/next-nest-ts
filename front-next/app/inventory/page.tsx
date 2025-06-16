@@ -11,8 +11,11 @@ import { PageHeader } from "@/components/page-header"
 import { QRScannerModal } from "@/components/inventory/qr-scanner-modal"
 import { ProductHistoryModal } from "@/components/inventory/product-history-modal"
 import { toast } from "@/components/ui/use-toast"
-import { Toaster } from "@/components/ui/toaster"
+import { useSearchParams } from "next/navigation"
+
+// Import ProductCategory และ ProductCategoryOptions จาก lib/types/product.ts
 import { type ProductCategory, ProductCategoryOptions } from "@/lib/types/product"
+import { Toaster } from "@/components/ui/toaster"
 
 // Product interface
 interface Product {
@@ -30,15 +33,17 @@ interface Product {
 }
 
 export default function InventoryPage() {
+  const searchParams = useSearchParams()
+
   // State for products data
   const [allProducts, setAllProducts] = useState<Product[]>([])
   // State for loading
   const [loading, setLoading] = useState(true)
   // State for search term
   const [searchTerm, setSearchTerm] = useState("")
-  // Edit categoryFilter state to handle ProductCategory
+  // แก้ไข categoryFilter state ให้รองรับ ProductCategory
   const [categoryFilter, setCategoryFilter] = useState<ProductCategory | "all">("all")
-  // State for status filter
+  // State for status filter - เพิ่ม "critical" option
   const [statusFilter, setStatusFilter] = useState("all")
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1)
@@ -47,6 +52,20 @@ export default function InventoryPage() {
   const [showQRScanner, setShowQRScanner] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+
+  // Set initial filter based on URL parameters
+  useEffect(() => {
+    const status = searchParams.get("status")
+    if (status === "critical") {
+      setStatusFilter("critical")
+    } else if (status === "low-stock") {
+      setStatusFilter("low-stock")
+    } else if (status === "out-of-stock") {
+      setStatusFilter("out-of-stock")
+    } else if (status === "in-stock") {
+      setStatusFilter("in-stock")
+    }
+  }, [searchParams])
 
   // Function to fetch all products
   const fetchProducts = async () => {
@@ -118,9 +137,17 @@ export default function InventoryPage() {
       filtered = filtered.filter((product) => product.category === categoryFilter)
     }
 
-    // Apply status filter
+    // Apply status filter - เพิ่มการจัดการ "critical" status
     if (statusFilter !== "all") {
-      filtered = filtered.filter((product) => getProductStatus(product).value === statusFilter)
+      if (statusFilter === "critical") {
+        // Critical includes both out-of-stock and low-stock
+        filtered = filtered.filter((product) => {
+          const status = getProductStatus(product).value
+          return status === "out-of-stock" || status === "low-stock"
+        })
+      } else {
+        filtered = filtered.filter((product) => getProductStatus(product).value === statusFilter)
+      }
     }
 
     return filtered
@@ -246,7 +273,9 @@ export default function InventoryPage() {
   // Calculate inventory summary
   const inventorySummary = useMemo(() => {
     const totalValue = filteredProducts.reduce((sum, product) => sum + product.quantity * product.price, 0)
-    const lowStockCount = filteredProducts.filter((product) => product.quantity <= product.minStock).length
+    const lowStockCount = filteredProducts.filter(
+      (product) => product.quantity <= product.minStock && product.quantity > 0,
+    ).length
     const outOfStockCount = filteredProducts.filter((product) => product.quantity <= 0).length
 
     return {
@@ -365,6 +394,7 @@ export default function InventoryPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="critical">Critical Items</SelectItem>
                     <SelectItem value="in-stock">In Stock</SelectItem>
                     <SelectItem value="low-stock">Low Stock</SelectItem>
                     <SelectItem value="out-of-stock">Out of Stock</SelectItem>

@@ -20,18 +20,22 @@ interface Activity {
   destination?: string
 }
 
-export function RecentActivitiesTable() {
+interface RecentActivitiesTableProps {
+  initialLimit?: number
+}
+
+export function RecentActivitiesTable({ initialLimit = 5 }: RecentActivitiesTableProps) {
   const [activities, setActivities] = useState<Activity[]>([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const fetchActivities = async () => {
       try {
-        const response = await fetch("/api/dashboard/activities?limit=5")
+        const response = await fetch(`/api/dashboard/activities?limit=${initialLimit}`)
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
-            setActivities(result.data)
+            setActivities(result.data.activities || result.data)
           } else {
             console.error("Failed to fetch activities:", result.message)
             setActivities([])
@@ -49,7 +53,7 @@ export function RecentActivitiesTable() {
     }
 
     fetchActivities()
-  }, [])
+  }, [initialLimit])
 
   const formatDate = (dateString: string) => {
     try {

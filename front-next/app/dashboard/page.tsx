@@ -1,15 +1,21 @@
+"use client"
+
+import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
-import { BarChart3, Download } from "lucide-react"
+import { BarChart3, Download, Activity } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { StockChart } from "@/components/dashboard/stock-chart"
 import { SummaryCards } from "@/components/dashboard/summary-cards"
 import { LowStockAlert } from "@/components/dashboard/low-stock-alert"
 import { CategoryDistribution } from "@/components/dashboard/category-distribution"
 import { RecentActivitiesTable } from "@/components/dashboard/recent-activities-table"
+import { AllActivitiesModal } from "@/components/dashboard/all-activities-modal"
 
 export default function DashboardPage() {
+  const [showAllActivities, setShowAllActivities] = useState(false)
+
   return (
     <div className="flex flex-col min-h-screen">
       <PageHeader
@@ -63,12 +69,13 @@ export default function DashboardPage() {
                   <CardTitle>Recent Activities</CardTitle>
                   <CardDescription>Latest inventory movements</CardDescription>
                 </div>
-                <Button variant="outline" size="sm" asChild>
-                  <a href="/reports">View All</a>
+                <Button variant="outline" size="sm" onClick={() => setShowAllActivities(true)}>
+                  <Activity className="mr-2 h-4 w-4" />
+                  View All Activities
                 </Button>
               </CardHeader>
               <CardContent>
-                <RecentActivitiesTable />
+                <RecentActivitiesTable initialLimit={5} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -138,9 +145,9 @@ export default function DashboardPage() {
                         Shows items that are below minimum stock level
                       </p>
                       <Button variant="outline" size="sm" className="w-full" asChild>
-                        <a href="/inventory?status=low-stock">
+                        <a href="/inventory?status=critical">
                           <Download className="mr-2 h-4 w-4" />
-                          Download Excel
+                          View Critical Items
                         </a>
                       </Button>
                     </CardContent>
@@ -150,6 +157,9 @@ export default function DashboardPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* All Activities Modal */}
+        <AllActivitiesModal open={showAllActivities} onOpenChange={setShowAllActivities} />
       </main>
     </div>
   )
