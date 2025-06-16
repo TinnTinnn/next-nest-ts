@@ -64,6 +64,106 @@ export class StockInService {
     };
   }
 
+  //  methods เหล่านี้ใน StockInService
+
+  async getRecentStockIn(limit: number = 5) {
+    const stockIns = await this.prisma.stockIn.findMany({
+      include: {
+        product: {
+          select: {
+            productId: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        date: 'desc',
+      },
+      take: limit,
+    });
+
+    // Format data สำหรับ Dashboard
+    return stockIns.map(stockIn => ({
+      id: stockIn.id,
+      reference: stockIn.reference,
+      date: stockIn.date,
+      productId: stockIn.productId,
+      productName: stockIn.product.name,
+      quantity: stockIn.quantity,
+      createdBy: 'System', // หรือ field ที่เก็บ user ที่สร้าง
+      supplier: stockIn.supplier,
+    }));
+  }
+
+  async getStockInSummary() {
+    // คำนวณ total items ใน 30 วันที่ผ่านมา
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const currentPeriod = await this.prisma.stockIn.aggregate({
+      where: {
+        date: {
+          gte: thirtyDaysAgo,
+        },
+      },
+      _sum: {
+        quantity: true,
+      },
+    });
+
+    // คำนวณ previous period สำหรับ % change
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const previousPeriod = await this.prisma.stockIn.aggregate({
+      where: {
+        date: {
+          gte: sixtyDaysAgo,
+          lt: thirtyDaysAgo,
+        },
+      },
+      _sum: {
+        quantity: true,
+      },
+    });
+
+    const currentTotal = currentPeriod._sum.quantity || 0;
+    const previousTotal = previousPeriod._sum.quantity || 0;
+
+    const percentChange = previousTotal > 0
+      ? ((currentTotal - previousTotal) / previousTotal) * 100
+      : 0;
+
+    return {
+      totalItems: currentTotal,
+      percentChange: Math.round(percentChange * 100) / 100, // Round to 2 decimal places
+    };
+  }
+
+  async getStockInChart(startDate: Date, endDate: Date) {
+    const stockIns = await this.prisma.stockIn.groupBy({
+      by: ['date'],
+      where: {
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      _sum: {
+        quantity: true,
+      },
+      orderBy: {
+        date: 'asc',
+      },
+    });
+
+    // Format data สำหรับ Chart
+    return stockIns.map(item => ({
+      date: item.date.toISOString(),
+      total: item._sum.quantity || 0,
+    }));
+  }
+
   async create(createStockInDto: CreateStockInDto) {
     // Check if reference already exists
     const existingStockIn = await this.prisma.stockIn.findUnique({

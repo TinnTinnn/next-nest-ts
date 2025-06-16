@@ -1,14 +1,13 @@
 import { Controller, Get, Post, Body, Param, Delete, HttpStatus, HttpCode, UseGuards, Query } from "@nestjs/common";
 import { StockOutService } from "./stock-out.service"
 import { CreateStockOutDto } from "./dto/create-stock-out.dto"
-import { ApiTags, ApiOperation, ApiResponse, ApiParam } from "@nestjs/swagger"
+import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiQuery } from "@nestjs/swagger"
 import { JwtAuthGuard } from "../auth/guards/jwt-auth.guard";
 
 @ApiTags("stock-out")
 @Controller("stock-out")
 export class StockOutController {
   constructor(private readonly stockOutService: StockOutService) {}
-
 
   @Post()
   @UseGuards(JwtAuthGuard)
@@ -20,17 +19,102 @@ export class StockOutController {
     return this.stockOutService.create(createStockOutDto);
   }
 
+  // เปลี่ยนจาก findAll() เป็น findAllWithPagination() เพื่อรองรับ pagination
   @Get()
-  @ApiOperation({ summary: "Get all stock out records" })
-  @ApiResponse({ status: 200, description: "Return all stock out records." })
-  findAll() {
-    return this.stockOutService.findAll()
+  @ApiOperation({ summary: "Get stock out records with pagination and filtering" })
+  @ApiResponse({ status: 200, description: "Return paginated stock out records." })
+  @ApiQuery({ name: 'page', required: false, description: 'Page number (default: 1)' })
+  @ApiQuery({ name: 'limit', required: false, description: 'Items per page (default: 10)' })
+  @ApiQuery({ name: 'startDate', required: false, description: 'Start date filter (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'endDate', required: false, description: 'End date filter (YYYY-MM-DD)' })
+  @ApiQuery({ name: 'department', required: false, description: 'Department filter' })
+  async findAllWithPagination(
+    @Query('page') page: string = '1',
+    @Query('limit') limit: string = '10',
+    @Query('startDate') startDate?: string,
+    @Query('endDate') endDate?: string,
+    @Query('department') department?: string,
+  ) {
+    try {
+      const result = await this.stockOutService.findAllWithPagination({
+        page: parseInt(page),
+        limit: parseInt(limit),
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        department,
+      });
+
+      return {
+        success: true,
+        message: 'Stock out records retrieved successfully',
+        data: result,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to fetch stock out records',
+        data: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } },
+      };
+    }
+  }
+
+  //  endpoint สำหรับ dashboard statistics
+
+  @Get('recent')
+  @ApiOperation({ summary: 'Get recent stock out records for dashboard'})
+  @ApiResponse({ status: 200, description: 'Return recent stock out records.'})
+  async getRecentStockOut(@Query('limit') limit: string = '5') {
+    return this.stockOutService.getRecentStockOut(parseInt(limit));
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Get stock out summary for dashboard'})
+  @ApiResponse({ status: 200, description: 'Return stock out summary data.'})
+  async getStockOutSummary() {
+    return this.stockOutService.getStockOutSummary();
+  }
+
+  @Get('chart')
+  @ApiOperation({ summary: 'Get stock out chart data for dashboard' })
+  @ApiResponse({ status: 200, description: 'Return stock out chart data.' })
+  async getStockOutChart(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.stockOutService.getStockOutChart(
+      new Date(startDate),
+      new Date(endDate)
+    );
+  }
+  @Get('dashboard/stats')
+  @ApiOperation({ summary: 'Get stock out dashboard statistics' })
+  @ApiResponse({ status: 200, description: 'Return stock out dashboard statistics.' })
+  async getDashboardStats() {
+    try {
+      const stats = await this.stockOutService.getDashboardStats();
+
+      return {
+        success: true,
+        message: 'Dashboard statistics retrieved successfully',
+        data: stats,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : 'Failed to fetch dashboard statistics',
+        data: null,
+      };
+    }
   }
 
   @Get('product/:productId')
   @ApiOperation({ summary: 'Get stock out records by product ID' })
   @ApiResponse({ status: 200, description: 'Return stock out records for the product.' })
   @ApiParam({ name: 'productId', description: 'Product ID' })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @ApiQuery({ name: 'startDate', required: false })
+  @ApiQuery({ name: 'endDate', required: false })
   async getStockOutByProduct(
     @Param('productId') productId: string,
     @Query('page') page: string = '1',
@@ -46,7 +130,6 @@ export class StockOutController {
         endDate: endDate ? new Date(endDate) : undefined,
       });
 
-      // ✅ Return consistent format
       return {
         success: true,
         message: 'Stock out records retrieved successfully',
@@ -56,7 +139,7 @@ export class StockOutController {
       return {
         success: false,
         message: error instanceof Error ? error.message : 'Failed to fetch stock out records',
-        data: [],
+        data: { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0 } },
       };
     }
   }
@@ -79,7 +162,6 @@ export class StockOutController {
   findOne(@Param('id') id: string) {
     return this.stockOutService.findOne(id);
   }
-
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)

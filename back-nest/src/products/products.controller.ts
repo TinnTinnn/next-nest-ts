@@ -78,6 +78,19 @@ export class ProductsController {
     return this.productsService.findAll()
   }
 
+  @Get('summary')
+  @ApiOperation({ summary: 'Get products summary for dashboard'})
+  async getProductsSummary() {
+    return this.productsService.getProductsSummary();
+  }
+
+  @Get('low-stock')
+  @ApiOperation({ summary: 'Get low stock products for dashboard'})
+  async getLowStockProducts() {
+    return this.productsService.findLowStock();
+  }
+
+
   @Get(':id')
   @ApiOperation({ summary: 'Get a product by ID' })
   @ApiResponse({ status: 200, description: 'Return the product.', type: ProductResponseDto })

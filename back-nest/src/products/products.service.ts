@@ -85,6 +85,23 @@ export class ProductsService {
     })
   }
 
+  async getProductsSummary() {
+    const totalProducts = await this.prisma.product.count()
+
+    const products = await this.prisma.product.findMany({
+      select: { quantity: true, price: true}
+    })
+
+    const totalValue = products.reduce((sum, product) =>
+    sum +(product.quantity * (product.price || 0)), 0)
+
+    return {
+      totalProducts,
+      totalValue,
+      valueChange: 0
+    }
+  }
+
   async remove(id: string): Promise<Product> {
     // Check if product exists
     await this.findOne(id)

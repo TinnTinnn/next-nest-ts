@@ -69,6 +69,32 @@ export class StockInController {
     return this.stockInService.findByReference(reference);
   }
 
+  @Get('recent')
+  @ApiOperation({ summary: 'Get recent stock in records for dashboard'})
+  @ApiResponse({ status: 200, description: 'Return recent stock in records.'})
+  async  getRecentStockIn(@Query('limit') limit: string = '5') {
+    return this.stockInService.getRecentStockIn(parseInt(limit))
+  }
+
+  @Get('summary')
+  @ApiOperation({ summary: 'Get stock in summary for dashboard'})
+  @ApiResponse({ status: 200, description: 'Return stock in summary data.'})
+  async getStockInSummary() {
+    return this.stockInService.getStockInSummary();
+  }
+
+  @Get('chart')
+  @ApiOperation({ summary: 'Get stock in chart data for dashboard' })
+  @ApiResponse({ status: 200, description: 'Return stock in chart data.' })
+  async  getStockInChart(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ) {
+    return this.stockInService.getStockInChart(
+      new Date(startDate),
+      new Date(endDate)
+    )
+  }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a stock in record by ID' })
