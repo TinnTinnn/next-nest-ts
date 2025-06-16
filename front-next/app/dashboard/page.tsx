@@ -1,27 +1,16 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import {
-  AlertCircle,
-  ArrowDownIcon,
-  ArrowUpIcon,
-  BarChart3,
-  Download,
-  FileSpreadsheet,
-  Package,
-  PackagePlus,
-  ShoppingCart,
-} from "lucide-react"
+import { BarChart3, Download } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
-import { RecentActivitiesTable } from "@/components/recent-activities-table"
-import { StockChart } from "@/components/stock-chart"
-import ProtectedRoute from '@/components/ProtectedRoute';
+import { StockChart } from "@/components/dashboard/stock-chart"
+import { SummaryCards } from "@/components/dashboard/summary-cards"
+import { LowStockAlert } from "@/components/dashboard/low-stock-alert"
+import { CategoryDistribution } from "@/components/dashboard/category-distribution"
+import { RecentActivitiesTable } from "@/components/dashboard/recent-activities-table"
 
 export default function DashboardPage() {
   return (
-    <ProtectedRoute>
     <div className="flex flex-col min-h-screen">
       <PageHeader
         title="Dashboard"
@@ -35,68 +24,11 @@ export default function DashboardPage() {
       />
 
       <main className="flex-1 p-6 space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Products</CardTitle>
-              <Package className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">1,248 items</div>
-              <p className="text-xs text-muted-foreground">+12 items from last month</p>
-            </CardContent>
-          </Card>
-          <Card className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock In</CardTitle>
-              <PackagePlus className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">145 items</div>
-              <div className="flex items-center text-xs text-green-600">
-                <ArrowUpIcon className="h-3 w-3 mr-1" />
-                <span>+23% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock Out</CardTitle>
-              <ShoppingCart className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">98 items</div>
-              <div className="flex items-center text-xs text-red-600">
-                <ArrowDownIcon className="h-3 w-3 mr-1" />
-                <span>-5% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-primary/10 shadow-md hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Inventory Value</CardTitle>
-              <FileSpreadsheet className="h-4 w-4 text-primary" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">$1,245,890</div>
-              <div className="flex items-center text-xs text-green-600">
-                <ArrowUpIcon className="h-3 w-3 mr-1" />
-                <span>+18% from last month</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Summary Cards */}
+        <SummaryCards />
 
-        <Alert variant="destructive" className="border-red-600/20 bg-red-600/10">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Low Stock Alert</AlertTitle>
-          <AlertDescription>
-            5 items are below minimum stock level{" "}
-            <Button variant="link" className="p-0 h-auto">
-              View Items
-            </Button>
-          </AlertDescription>
-        </Alert>
+        {/* Low Stock Alert */}
+        <LowStockAlert />
 
         <Tabs defaultValue="overview" className="space-y-4">
           <TabsList className="bg-muted/80 backdrop-blur-sm">
@@ -109,7 +41,7 @@ export default function DashboardPage() {
               <Card className="lg:col-span-4 border-primary/10 shadow-md">
                 <CardHeader>
                   <CardTitle>Inventory Movement</CardTitle>
-                  <CardDescription>Stock in and out over the last 30 days</CardDescription>
+                  <CardDescription>Stock in and out over time</CardDescription>
                 </CardHeader>
                 <CardContent className="pl-2">
                   <StockChart />
@@ -121,48 +53,7 @@ export default function DashboardPage() {
                   <CardDescription>Distribution of products by category</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-primary"></div>
-                        <span className="text-sm">Stationery</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">42%</span>
-                        <Badge variant="outline">524 items</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-blue-500"></div>
-                        <span className="text-sm">IT Equipment</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">28%</span>
-                        <Badge variant="outline">349 items</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-green-500"></div>
-                        <span className="text-sm">Office Supplies</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">18%</span>
-                        <Badge variant="outline">225 items</Badge>
-                      </div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="h-3 w-3 rounded-full bg-yellow-500"></div>
-                        <span className="text-sm">Electronics</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">12%</span>
-                        <Badge variant="outline">150 items</Badge>
-                      </div>
-                    </div>
-                  </div>
+                  <CategoryDistribution />
                 </CardContent>
               </Card>
             </div>
@@ -172,8 +63,8 @@ export default function DashboardPage() {
                   <CardTitle>Recent Activities</CardTitle>
                   <CardDescription>Latest inventory movements</CardDescription>
                 </div>
-                <Button variant="outline" size="sm">
-                  View All
+                <Button variant="outline" size="sm" asChild>
+                  <a href="/reports">View All</a>
                 </Button>
               </CardHeader>
               <CardContent>
@@ -214,9 +105,11 @@ export default function DashboardPage() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Shows all products and their current stock levels
                       </p>
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Excel
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <a href="/reports">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Excel
+                        </a>
                       </Button>
                     </CardContent>
                   </Card>
@@ -228,9 +121,11 @@ export default function DashboardPage() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Shows history of all stock in and out transactions
                       </p>
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Excel
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <a href="/reports">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Excel
+                        </a>
                       </Button>
                     </CardContent>
                   </Card>
@@ -242,9 +137,11 @@ export default function DashboardPage() {
                       <p className="text-sm text-muted-foreground mb-4">
                         Shows items that are below minimum stock level
                       </p>
-                      <Button variant="outline" size="sm" className="w-full">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download Excel
+                      <Button variant="outline" size="sm" className="w-full" asChild>
+                        <a href="/inventory?status=low-stock">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download Excel
+                        </a>
                       </Button>
                     </CardContent>
                   </Card>
@@ -255,6 +152,5 @@ export default function DashboardPage() {
         </Tabs>
       </main>
     </div>
-    </ProtectedRoute>
   )
 }
