@@ -109,7 +109,7 @@ export default function InventoryPage() {
   const getProductStatus = (product: Product) => {
     if (product.quantity <= 0) {
       return { label: "Out of Stock", className: "bg-red-500/10 text-red-600 border-red-200", value: "out-of-stock" }
-    } else if (product.quantity <= product.minStock) {
+    } else if (product.quantity < product.minStock) {
       return { label: "Low Stock", className: "bg-yellow-500/10 text-yellow-600 border-yellow-200", value: "low-stock" }
     } else {
       return { label: "In Stock", className: "bg-green-500/10 text-green-600 border-green-200", value: "in-stock" }
@@ -274,7 +274,7 @@ export default function InventoryPage() {
   const inventorySummary = useMemo(() => {
     const totalValue = filteredProducts.reduce((sum, product) => sum + product.quantity * product.price, 0)
     const lowStockCount = filteredProducts.filter(
-      (product) => product.quantity <= product.minStock && product.quantity > 0,
+      (product) => product.quantity < product.minStock && product.quantity > 0,
     ).length
     const outOfStockCount = filteredProducts.filter((product) => product.quantity <= 0).length
 

@@ -417,10 +417,10 @@ export default function StockOutPage() {
                           <TableCell>{product.name}</TableCell>
                           <TableCell className="capitalize">{product.category}</TableCell>
                           <TableCell>
-                            <span className={product.quantity <= product.minStock ? "text-yellow-600" : ""}>
+                            <span className={product.quantity < product.minStock ? "text-yellow-600" : ""}>
                               {product.quantity} {product.unit}s
                             </span>
-                            {product.quantity <= product.minStock && (
+                            {product.quantity < product.minStock && (
                               <span className="text-xs text-yellow-600 block">Low Stock</span>
                             )}
                           </TableCell>

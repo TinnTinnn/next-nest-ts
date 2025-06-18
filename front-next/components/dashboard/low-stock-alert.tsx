@@ -36,7 +36,7 @@ export function LowStockAlert() {
           products.forEach((product: any) => {
             if (product.quantity <= 0) {
               outOfStock.push(product)
-            } else if (product.quantity <= product.minStock) {
+            } else if (product.quantity < product.minStock) {
               lowStock.push(product)
             }
           })
@@ -108,7 +108,7 @@ export function LowStockAlert() {
           )}
           {lowStockProducts.length > 0 && (
             <div>
-              <span className={hasOutOfStock ? "text-muted-foreground" : "font-medium"}>
+              <span className={hasOutOfStock ? "text-muted-foreground" : "font-medium text-yellow-600"}>
                 {lowStockProducts.length} {lowStockProducts.length === 1 ? "item is" : "items are"} below minimum stock
                 level
               </span>
