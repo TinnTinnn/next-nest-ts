@@ -74,7 +74,7 @@ export function CategoryDistribution() {
 
   return (
     <div className="space-y-4">
-      {categories.slice(0, 5).map((category, index) => (
+      {categories.slice(0, 6).map((category, index) => (
         <div key={category.category} className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className={`h-3 w-3 rounded-full ${getCategoryColor(index)}`}></div>
@@ -87,8 +87,8 @@ export function CategoryDistribution() {
         </div>
       ))}
 
-      {categories.length > 5 && (
-        <div className="text-center text-sm text-muted-foreground pt-2">+{categories.length - 5} more categories</div>
+      {categories.length > 6 && (
+        <div className="text-center text-sm text-muted-foreground pt-2">+{categories.length - 6} more categories</div>
       )}
     </div>
   )
