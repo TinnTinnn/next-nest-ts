@@ -5,23 +5,24 @@ WORKDIR /app
 COPY package*.json ./
 COPY prisma ./prisma/
 
-# ติดตั้งทุก dependencies รวม dev
+# ติดตั้ง dependencies (รวม dev เพื่อให้ prisma ใช้งานได้)
 RUN npm install
 
-# ติดตั้ง Nest CLI เพื่อให้ nest build ทำงานได้
+# ติดตั้ง Nest CLI สำหรับ build
 RUN npm install -g @nestjs/cli
 
 COPY . .
 
-# Generate Prisma client
+# สร้าง Prisma Client
 RUN npx prisma generate
 
-# ✅ Apply Prisma migrations
-RUN npx prisma migrate deploy
-
-# Build app
+# Build NestJS app
 RUN npm run build
+
+# ให้สิทธิ์รัน entrypoint
+RUN chmod +x ./entrypoint.sh
 
 EXPOSE 3001
 
-CMD ["npm", "run", "start:prod"]
+# ใช้ entrypoint.sh ตอน container รันจริง
+CMD ["./entrypoint.sh"]
