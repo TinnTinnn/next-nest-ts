@@ -10,7 +10,10 @@ async function bootstrap() {
 
   // Enable CORS
   app.enableCors({
-    origin: ['http://localhost:3000'],
+    origin: [
+      'https://next-nest-ts-front.vercel.app', // Frontend URL
+      'http://localhost:3000' // สำหรับ development
+    ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
