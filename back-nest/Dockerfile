@@ -12,11 +12,10 @@ RUN npm ci --only=production
 # Copy source code
 COPY . .
 
-# Generate Prisma client FIRST
+# Generate Prisma client (สร้าง types)
 RUN npx prisma generate
 
-# Push database schema (สร้าง tables)
-RUN npx prisma db push
+# ไม่ต้อง db push ใน build เพราะจะทำใน Pre-Deploy Command
 
 # Build the application
 RUN npm run build
