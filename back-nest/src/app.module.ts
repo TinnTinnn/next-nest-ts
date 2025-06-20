@@ -21,7 +21,7 @@ import { SeedModule } from "./seed/seed.module";
     ProductsModule,
     StockInModule,
     StockOutModule,
-    SeedModule,
+    // SeedModule,  // Comment this line when need to disabled seed
   ],
   controllers: [AppController],
   providers: [AppService],
