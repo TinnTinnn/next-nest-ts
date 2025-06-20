@@ -9,6 +9,7 @@ import { StockInModule } from './stock-in/stock-in.module';
 import { StockOutModule } from './stock-out/stock-out.module';
 import { ProductsModule } from './products/products.module';
 import { ConfigModule } from '@nestjs/config';
+import { SeedModule } from "./seed/seed.module";
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { ConfigModule } from '@nestjs/config';
     PrismaModule,
     ProductsModule,
     StockInModule,
-    StockOutModule
+    StockOutModule,
+    SeedModule,
   ],
   controllers: [AppController],
   providers: [AppService],
