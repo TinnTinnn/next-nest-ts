@@ -21,7 +21,7 @@ export async function GET(request: Request) {
     if (status !== "all") params.append("status", status)
 
     // Call backend API
-    const response = await fetch(`http://localhost:3001/api/products?${params.toString()}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

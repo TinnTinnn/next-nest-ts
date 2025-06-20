@@ -10,7 +10,7 @@ async function sendToBackend(request: Request, id: string, method: string) {
     // For GET requests, we don't need authentication
     if (method === "GET") {
       // Send request to backend without token
-      const backendUrl = `http://localhost:3001/api/products/${id}`
+      const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/products/${id}`
       const response = await fetch(backendUrl, {
         method,
         headers: {
@@ -60,7 +60,7 @@ async function sendToBackend(request: Request, id: string, method: string) {
     }
 
     // Send request to backend
-    const backendUrl = `http://localhost:3001/api/products/${id}`
+    const backendUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/products/${id}`
     const response = await fetch(backendUrl, {
       method,
       headers,

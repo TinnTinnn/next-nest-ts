@@ -215,7 +215,7 @@ export default function StockOutPage() {
           quantity: item.stockOutQuantity,
           unitPrice: item.product.price,
         }
-        const response = await fetchWithAuth(`http://localhost:3001/api/stock-out`, {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-out`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

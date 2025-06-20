@@ -70,7 +70,7 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
       const fetchProductData = async () => {
         setIsLoading(true)
         try {
-          const response = await fetch(`http://localhost:3001/api/products/${productId}`)
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}`)
           if (!response.ok) {
             throw new Error("Failed to fetch product data")
           }
@@ -111,7 +111,7 @@ export function EditProductModal({ open, onOpenChange, onProductUpdated, product
     setIsSubmitting(true)
 
     try {
-      const response = await fetchWithAuth(`http://localhost:3001/api/products/${productId}`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request) {
   try {
     // Call backend API for low stock products
-    const response = await fetch("http://localhost:3001/api/products/low-stock", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/low-stock`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

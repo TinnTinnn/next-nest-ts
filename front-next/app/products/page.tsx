@@ -184,7 +184,7 @@ export default function ProductsPage() {
     }
 
     try {
-      const response = await fetchWithAuth(`http://localhost:3001/api/products/${id}`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${id}`, {
         method: "DELETE",
       })
 

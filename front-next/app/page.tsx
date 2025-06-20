@@ -34,7 +34,7 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/auth/login', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -66,7 +66,7 @@ export default function LoginPage() {
       })
 
       // ดึง /auth/me มาใส่ context ทันที
-      const meRes = await fetch('http://localhost:3001/api/auth/me', {
+      const meRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, {
         method: 'GET',
         headers: {
           Authorization: `Bearer ${data.access_token}`,

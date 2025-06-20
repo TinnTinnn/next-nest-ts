@@ -20,7 +20,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     // Call backend API for stock in history
     const stockInResponse = await fetch(
-      `http://localhost:3001/api/stock-in/product/${params.id}?${queryParams.toString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/stock-in/product/${params.id}?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {
@@ -31,7 +31,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
     // Call backend API for stock out history
     const stockOutResponse = await fetch(
-      `http://localhost:3001/api/stock-out/product/${params.id}?${queryParams.toString()}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/stock-out/product/${params.id}?${queryParams.toString()}`,
       {
         method: "GET",
         headers: {

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server"
 export async function GET(request: Request) {
   try {
     // Call backend API for products summary
-    const productsResponse = await fetch("http://localhost:3001/api/products/summary", {
+    const productsResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/summary`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     })
 
     // Call backend API for stock in summary
-    const stockInResponse = await fetch("http://localhost:3001/api/stock-in/summary", {
+    const stockInResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-in/summary`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -20,7 +20,7 @@ export async function GET(request: Request) {
     })
 
     // Call backend API for stock out summary
-    const stockOutResponse = await fetch("http://localhost:3001/api/stock-out/summary", {
+    const stockOutResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-out/summary`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

@@ -45,7 +45,7 @@ export const refreshAccessToken = async (): Promise<string | null> => {
   }
 
   try {
-    const response = await fetch("http://localhost:3001/api/auth/refresh", {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/refresh`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -89,6 +89,10 @@ export const logout = () => {
 
 // Function to call API that requires authentication
 export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  // If url is relative, prepend API URL from env
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const fullUrl = url.startsWith('http') ? url : `${apiUrl}${url.startsWith('/') ? '' : '/'}${url}`;
+
   let { accessToken } = getTokens()
 
   // Check if token is expired
@@ -108,7 +112,7 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
   }
 
   // Send request with token
-  const response = await fetch(url, {
+  const response = await fetch(fullUrl, {
     ...options,
     headers,
     credentials: "include", // เพิ่ม credentials: 'include' เพื่อส่ง cookies
@@ -123,7 +127,7 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
     }
 
     // Send request again with new token
-    return fetch(url, {
+    return fetch(fullUrl, {
       ...options,
       headers: {
         ...options.headers,

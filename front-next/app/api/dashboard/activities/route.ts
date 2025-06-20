@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const page = searchParams.get("page") || "1"
 
     // Call backend API for recent stock in
-    const stockInResponse = await fetch(`http://localhost:3001/api/stock-in/recent?limit=${limit}&offset=${offset}`, {
+    const stockInResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-in/recent?limit=${limit}&offset=${offset}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -17,7 +17,7 @@ export async function GET(request: Request) {
     })
 
     // Call backend API for recent stock out
-    const stockOutResponse = await fetch(`http://localhost:3001/api/stock-out/recent?limit=${limit}&offset=${offset}`, {
+    const stockOutResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-out/recent?limit=${limit}&offset=${offset}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

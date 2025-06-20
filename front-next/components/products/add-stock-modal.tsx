@@ -64,7 +64,7 @@ export function AddStockModal({ open, onOpenChange, onStockAdded, productId, pro
 
     try {
       // Call the NestJS backend directly
-      const response = await fetchWithAuth(`http://localhost:3001/api/products/${productId}/stock`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${productId}/stock`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

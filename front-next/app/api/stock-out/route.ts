@@ -42,7 +42,7 @@ export async function POST(request: Request) {
         unitPrice: item.unitPrice,
       }
 
-      const response = await fetchWithAuth(`http://localhost:3001/api/stock-out`, {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-out`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -106,7 +106,7 @@ export async function GET(request: Request) {
     if (department) params.append("department", department)
 
     // Call backend API
-    const response = await fetchWithAuth(`http://localhost:3001/api/stock-out?${params.toString()}`, {
+    const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-out?${params.toString()}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",

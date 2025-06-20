@@ -174,7 +174,7 @@ export default function StockInPage() {
           notes: notes.trim() || undefined,
         }
 
-        const response = await fetchWithAuth(`http://localhost:3001/api/stock-in`, {
+        const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/stock-in`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

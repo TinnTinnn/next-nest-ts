@@ -71,7 +71,7 @@ export function AddProductModal({ open, onOpenChange, onProductAdded }: AddProdu
 
     try {
       // Send data to API with fetchWithAuth function
-      const response = await fetchWithAuth("http://localhost:3001/api/products", {
+      const response = await fetchWithAuth(`${process.env.NEXT_PUBLIC_API_URL}/api/products`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

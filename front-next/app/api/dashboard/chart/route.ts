@@ -17,7 +17,7 @@ export async function GET(request: Request) {
 
     // Call backend API for stock in data
     const stockInResponse = await fetch(
-      `http://localhost:3001/api/stock-in/chart?startDate=${startDateStr}&endDate=${endDateStr}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/stock-in/chart?startDate=${startDateStr}&endDate=${endDateStr}`,
       {
         method: "GET",
         headers: {
@@ -28,7 +28,7 @@ export async function GET(request: Request) {
 
     // Call backend API for stock out data
     const stockOutResponse = await fetch(
-      `http://localhost:3001/api/stock-out/chart?startDate=${startDateStr}&endDate=${endDateStr}`,
+      `${process.env.NEXT_PUBLIC_API_URL}/api/stock-out/chart?startDate=${startDateStr}&endDate=${endDateStr}`,
       {
         method: "GET",
         headers: {
