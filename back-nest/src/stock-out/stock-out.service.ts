@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException, BadRequestException }
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateStockOutDto } from "./dto/create-stock-out.dto"
 import { ProductsService } from "../products/products.service"
+import { format } from "date-fns";
 
 interface FindOptions {
   page: number;
@@ -147,28 +148,32 @@ export class StockOutService {
   }
 
   async getStockOutChart(startDate: Date, endDate: Date) {
-    const stockOuts = await this.prisma.stockOut.groupBy({
-      by: ['date'],
+    const stockOuts = await this.prisma.stockOut.findMany({
       where: {
         date: {
           gte: startDate,
           lte: endDate,
         },
       },
-      _sum: {
-        quantity: true,
-      },
       orderBy: {
         date: 'asc',
       },
     });
 
-    // Format data สำหรับ Chart
-    return stockOuts.map(item => ({
-      date: item.date.toISOString(),
-      total: item._sum.quantity || 0,
+    // Group by date (YYYY-MM-DD)
+    const grouped: Record<string, number> = {};
+    for (const item of stockOuts) {
+      const dateStr = format(item.date, "yyyy-MM-dd");
+      grouped[dateStr] = (grouped[dateStr] || 0) + item.quantity;
+    }
+
+    // Return as array for chart
+    return Object.entries(grouped).map(([date, total]) => ({
+      date: new Date(date).toISOString(),
+      total,
     }));
   }
+
   async getDashboardStats() {
     const today = new Date();
     const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ConflictException } from "@nestjs/common
 import { PrismaService } from "../prisma/prisma.service"
 import { CreateStockInDto } from "./dto/create-stock-in.dto"
 import { ProductsService } from "../products/products.service"
+import { format } from "date-fns";
 
 interface FindOptions {
   page: number;
@@ -141,26 +142,29 @@ export class StockInService {
   }
 
   async getStockInChart(startDate: Date, endDate: Date) {
-    const stockIns = await this.prisma.stockIn.groupBy({
-      by: ['date'],
+    const stockIns = await this.prisma.stockIn.findMany({
       where: {
         date: {
           gte: startDate,
           lte: endDate,
         },
       },
-      _sum: {
-        quantity: true,
-      },
       orderBy: {
         date: 'asc',
       },
     });
 
-    // Format data สำหรับ Chart
-    return stockIns.map(item => ({
-      date: item.date.toISOString(),
-      total: item._sum.quantity || 0,
+    // Group by date (YYYY-MM-DD)
+    const grouped: Record<string, number> = {};
+    for (const item of stockIns) {
+      const dateStr = format(item.date, "yyyy-MM-dd");
+      grouped[dateStr] = (grouped[dateStr] || 0) + item.quantity;
+    }
+
+    // Return as array for chart
+    return Object.entries(grouped).map(([date, total]) => ({
+      date: new Date(date).toISOString(),
+      total,
     }));
   }
 
